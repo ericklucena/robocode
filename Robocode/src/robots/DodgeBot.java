@@ -4,6 +4,7 @@ package robots;
 
 import robocode.*;
 import robocode.util.Utils;
+import robots.util.*;
 
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
 
@@ -57,6 +58,8 @@ public class DodgeBot extends AdvancedRobot
 		    setTurnRightRadians(bodyTurn);
 		    evaluateScan(e);
 		    enemy.update(e);
+		    fire(1);
+		    System.out.println("A");
 		}
 	}
 	

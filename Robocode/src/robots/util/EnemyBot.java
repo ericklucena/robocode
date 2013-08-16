@@ -1,39 +1,28 @@
-package robots;
+package robots.util;
+
+import java.awt.geom.Point2D;
 
 import robocode.ScannedRobotEvent;
 
 public class EnemyBot {
 	
-	private String name;
-	private double bearing;
-	private double distance;
-	private double energy;
-	private double heading;
-	private double velocity;
-	
-	
-	public EnemyBot(String name, double bearing, double distance,
-			double energy, double heading, double velocity) {
-		super();
-		this.name = name;
-		this.bearing = bearing;
-		this.distance = distance;
-		this.energy = energy;
-		this.heading = heading;
-		this.velocity = velocity;
-	}
+	public String name;
+	public double bearing;
+	public double distance;
+	public double energy;
+	public double heading;
+	public double changehead;
+	public double velocity;
+	public Point2D location;
+	public long scanTime;
+	public boolean alive;
 	
 	public EnemyBot(){
 		reset();
 	}
 	
 	public void update(ScannedRobotEvent e){
-		this.name = e.getName();
-		this.bearing = e.getBearing();
-		this.distance = e.getDistance();
-		this.energy = e.getEnergy();
-		this.heading = e.getHeading();
-		this.velocity = e.getVelocity();
+		
 	}
 	
 	public void reset(){
@@ -43,6 +32,7 @@ public class EnemyBot {
 		this.energy = 0;
 		this.heading = 0;
 		this.velocity = 0;
+		this.location = new Point2D.Double();
 	}
 	
 	public boolean none(){

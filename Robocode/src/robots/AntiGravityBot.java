@@ -75,7 +75,7 @@ public class AntiGravityBot extends AdvancedRobot
 			if(enemies[i]!= null){
 				EnemyBot e = enemies[i];
 				if (e.alive) {
-					p = new GravPoint(e.location , -1000);
+					p = new GravPoint(e.location() , -1000);
 			        force = p.power/Math.pow(RobotUtils.getRange(new Point2D.Double(getX(), getY()) ,p.location),2);
 			        //Find the bearing from the point to us
 			        ang = RobotUtils.normaliseBearing(Math.PI/2 - Math.atan2(getY() - p.location.getY(), getX() - p.location.getX())); 
@@ -152,7 +152,7 @@ public class AntiGravityBot extends AdvancedRobot
 		enemy.changehead = h;
 		double x = getX()+Math.sin(absbearing_rad)*e.getDistance();
 		double y = getY()+Math.cos(absbearing_rad)*e.getDistance();
-		enemy.location.setLocation(x, y);
+		enemy.location().setLocation(x, y);
 		enemy.bearing = e.getBearingRadians();
 		enemy.heading = e.getHeadingRadians();
 		enemy.scanTime = getTime();				

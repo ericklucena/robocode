@@ -1,6 +1,9 @@
 package robots;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 import robocode.*;
 import robocode.util.Utils;
 import robots.util.*;
@@ -13,25 +16,29 @@ import robots.util.*;
 public class TeamBot extends TeamRobot
 {
 	private EnemyBot enemy = new EnemyBot();
+	Hashtable <String, EnemyBot> enemies;
+
 	boolean direction = false;
-		
+
 	public void run() {
-		
+
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
-		
-	    do {
+		enemies = new Hashtable<String, EnemyBot>();
 
-	        // Turn the radar if we have no more turn, starts it if it stops and at the start of round
-	        if ( getRadarTurnRemaining() == 0.0 )
-	            setTurnRadarRightRadians( Double.POSITIVE_INFINITY );
-	        execute();
-	    } while ( true );
-	 
+		do {
+
+			// Turn the radar if we have no more turn, starts it if it stops and at the start of round
+			if ( getRadarTurnRemaining() == 0.0 )
+				setTurnRadarRightRadians( Double.POSITIVE_INFINITY );
+			avaliation();
+			execute();
+		} while ( true );
+
 
 	}
-	 
+
 	public void onScannedRobot(ScannedRobotEvent e) {
 		/**
 		 * Módulo de scan perfeito para um robô.
@@ -40,47 +47,56 @@ public class TeamBot extends TeamRobot
 			return;
 		}
 		
-		//Caso não haja nenhum robô como alvo...
-		if(enemy.none()){
+		EnemyBot enemy = (EnemyBot) enemies.get(e.getName());
+		
+		if((enemy == null) && (this.enemy.name.equals(""))){
 			System.out.println("A");
-			enemy.update(e);
+			this.enemy = new EnemyBot();
+			this.enemy.name = e.getName();
 		}
 		
-		if(enemy.getName().equals(e.getName())){
-		    double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
-		    double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
-		    double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
-		    double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
-		    bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
-		    double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
-		 
-		    radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
-		    setTurnRadarRightRadians(radarTurn);
-		    setTurnGunRightRadians(gunTurn);
-		    setTurnRightRadians(bodyTurn);
-		    evaluateScan(e);
-		    
-		    double absbearing_rad = (getHeadingRadians()+e.getBearingRadians())%(2*Math.PI);
-		    double x = getX()+Math.sin(absbearing_rad)*e.getDistance();
+		if(this.enemy.name.equals(e.getName())){
+			double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
+			double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
+			double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
+			double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
+			bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
+			double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
+
+			radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
+			setTurnRadarRightRadians(radarTurn);
+			setTurnGunRightRadians(gunTurn);
+			setTurnRightRadians(bodyTurn);
+			evaluateScan(e);
+
+			double absbearing_rad = (getHeadingRadians()+e.getBearingRadians())%(2*Math.PI);
+			double x = getX()+Math.sin(absbearing_rad)*e.getDistance();
 			double y = getY()+Math.cos(absbearing_rad)*e.getDistance();
-			enemy.x = x;
-			enemy.y = y;
-			
-		    
-		    enemy.update(e);
-		    //fire(1);
-		    
-		    try {
-		    	System.out.println(enemy);
-				this.broadcastMessage(enemy);
+			this.enemy.x = x;
+			this.enemy.y = y;
+
+
+			this.enemy.update(e);
+			enemies.put(this.enemy.getName(), this.enemy);
+			//fire(1);
+
+			try {
+				this.broadcastMessage(this.enemy);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		    
+
 		}
 	}
 	
+	public void onMessageReceived(MessageEvent e){
+		
+		EnemyBot enemy = (EnemyBot) e.getMessage();
+		enemies.put(enemy.name, enemy);
+		
+	}
+
 	public void evaluateScan(ScannedRobotEvent e){
 		if(e.getEnergy()<enemy.getEnergy()){
 			if(direction){
@@ -91,8 +107,8 @@ public class TeamBot extends TeamRobot
 			direction = !direction;
 		}
 	}
-	
-	
+
+
 	//Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e){
 		if(e.getName().equals(enemy.getName())){
@@ -100,13 +116,29 @@ public class TeamBot extends TeamRobot
 			enemy.reset();
 		}
 	}
-		 
+	
+	
+	//Itera sobre o hastable e faz considerações sobre o que fazer
+	public void avaliation(){
+		
+		Enumeration<EnemyBot> enemies = this.enemies.elements();
+		
+		while(enemies.hasMoreElements()){
+			EnemyBot enemy = enemies.nextElement();
+			
+			System.out.println(enemy);
+			
+		}
+		System.out.println();
+		
+	}
+	
+
 	/**
 	 * onHitWall: What to do when you hit a wall
 	 */
 	public void onHitWall(HitWallEvent e) {
-		
+
 	}
-	
+
 }
-								

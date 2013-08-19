@@ -3,6 +3,9 @@ package robots;
 
 
 import java.awt.geom.Point2D;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 import robocode.*;
 import robocode.util.Utils;
 import robots.util.*;
@@ -15,6 +18,7 @@ import robots.util.*;
 public class BlindBot extends TeamRobot implements Droid
 {
 	private EnemyBot enemy = new EnemyBot();
+	Hashtable <String, EnemyBot> enemies;
 	boolean direction = false;
 		
 	public void run() {
@@ -22,11 +26,13 @@ public class BlindBot extends TeamRobot implements Droid
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
+		enemies = new Hashtable<String, EnemyBot>();
 		
 	    do {
 
 	        // Turn the radar if we have no more turn, starts it if it stops and at the start of round
-	        actions();
+	        avaliation();
+	    	actions();
 	        execute();
 	    } while ( true );
 	 
@@ -44,6 +50,24 @@ public class BlindBot extends TeamRobot implements Droid
 	    setTurnGunRightRadians(gunTurn);
 	    setTurnRightRadians(bodyTurn);
 
+	}
+	
+	//Itera sobre o hastable e faz considerações sobre o que fazer
+	public void avaliation(){
+		
+		Enumeration<EnemyBot> enemies = this.enemies.elements();
+		
+		while(enemies.hasMoreElements()){
+			EnemyBot enemy = enemies.nextElement();
+			if(enemy.name.equals(this.enemy.name)){
+				this.enemy = enemy;
+			}
+			
+			System.out.println(enemy);
+			
+		}
+		System.out.println();
+		
 	}
 	
 
@@ -78,10 +102,11 @@ public class BlindBot extends TeamRobot implements Droid
 	@Override
 	public void onMessageReceived(MessageEvent event) {
 		
-		enemy= (EnemyBot) event.getMessage();
-		
-		
-		
+		EnemyBot enemy = (EnemyBot) event.getMessage();
+		enemies.put(enemy.name, enemy);
+		if(this.enemy.name.equals("")){
+			this.enemy = enemy;
+		}
 	}
 	
 	

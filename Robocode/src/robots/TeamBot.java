@@ -114,6 +114,8 @@ public class TeamBot extends TeamRobot
 		if(e.getName().equals(enemy.getName())){
 			System.out.println("Yippee ki-yay, motherfucker!");
 			enemy.reset();
+		}else{
+			enemies.remove(e.getName());
 		}
 	}
 	

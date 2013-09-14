@@ -1,5 +1,6 @@
 package robots;
 
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -16,6 +17,14 @@ import robots.util.*;
 public class TeamBot extends TeamRobot
 {
 	private EnemyBot enemy = new EnemyBot();
+	public EnemyBot getEnemy() {
+		return enemy;
+	}
+
+	public void setEnemy(EnemyBot enemy) {
+		this.enemy = enemy;
+	}
+
 	Hashtable <String, EnemyBot> enemies;
 
 	boolean direction = false;
@@ -32,7 +41,9 @@ public class TeamBot extends TeamRobot
 			// Turn the radar if we have no more turn, starts it if it stops and at the start of round
 			if ( getRadarTurnRemaining() == 0.0 )
 				setTurnRadarRightRadians( Double.POSITIVE_INFINITY );
-			avaliation();
+			avaliation(); //evaluation() 
+			//e deveria ser verbo nao conjugado = evaluate()
+			fire();
 			execute();
 		} while ( true );
 
@@ -58,14 +69,14 @@ public class TeamBot extends TeamRobot
 		if(this.enemy.name.equals(e.getName())){
 			double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
 			double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
-			double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
+			//double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
 			double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
 			bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
 			double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
 
 			radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
 			setTurnRadarRightRadians(radarTurn);
-			setTurnGunRightRadians(gunTurn);
+			//setTurnGunRightRadians(gunTurn);
 			setTurnRightRadians(bodyTurn);
 			evaluateScan(e);
 
@@ -93,6 +104,7 @@ public class TeamBot extends TeamRobot
 	public void onMessageReceived(MessageEvent e){
 		
 		EnemyBot enemy = (EnemyBot) e.getMessage();
+		
 		enemies.put(enemy.name, enemy);
 		
 	}
@@ -134,7 +146,15 @@ public class TeamBot extends TeamRobot
 		System.out.println();
 		
 	}
+	public void fire(){
+		
+		
+	}
 	
+
+	public Point2D location(){
+		return new Point2D.Double(getX(), getY());
+	}
 
 	/**
 	 * onHitWall: What to do when you hit a wall
@@ -142,5 +162,6 @@ public class TeamBot extends TeamRobot
 	public void onHitWall(HitWallEvent e) {
 
 	}
+	
 
 }

@@ -5,8 +5,7 @@ import java.io.Serializable;
 
 import robocode.ScannedRobotEvent;
 
-public class EnemyBot implements Serializable{
-	
+public class EnemyBot implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	public String name;
@@ -20,12 +19,16 @@ public class EnemyBot implements Serializable{
 	public double y;
 	public long scanTime;
 	public boolean alive;
-	
-	public EnemyBot(){
+	public boolean accelerating;
+
+	public EnemyBot() {
 		reset();
 	}
-	
-	public void update(ScannedRobotEvent e, double x, double y){
+
+	public void update(ScannedRobotEvent e, double x, double y) {
+		this.accelerating = alive && e.getVelocity() > velocity;
+		// se está freiando ou parando de dar ré. (nao deve ser levado MUITO em
+		// conta, pode dar merda.
 		this.name = e.getName();
 		this.bearing = e.getBearingRadians();
 		this.distance = e.getDistance();
@@ -37,8 +40,8 @@ public class EnemyBot implements Serializable{
 		this.x = x;
 		this.y = y;
 	}
-	
-	public void update(ScannedRobotEvent e){
+
+	public void update(ScannedRobotEvent e) {
 		this.name = e.getName();
 		this.bearing = e.getBearingRadians();
 		this.distance = e.getDistance();
@@ -48,8 +51,8 @@ public class EnemyBot implements Serializable{
 		this.scanTime = e.getTime();
 		this.alive = true;
 	}
-	
-	public void reset(){
+
+	public void reset() {
 		this.name = "";
 		this.bearing = 0;
 		this.distance = 0;
@@ -59,15 +62,14 @@ public class EnemyBot implements Serializable{
 		this.x = 0;
 		this.y = 0;
 	}
-	
-	public boolean none(){
-		if(this.name == null){
+
+	public boolean none() {
+		if (this.name == null) {
 			return false;
-		}else{
+		} else {
 			return this.name.equals("");
 		}
 	}
-
 
 	public String getName() {
 		return name;
@@ -92,8 +94,8 @@ public class EnemyBot implements Serializable{
 	public double getVelocity() {
 		return velocity;
 	}
-	
-	public Point2D location(){
+
+	public Point2D location() {
 		return new Point2D.Double(x, y);
 	}
 
@@ -105,6 +107,5 @@ public class EnemyBot implements Serializable{
 				+ ", velocity=" + velocity + ", x=" + x + ", y=" + y
 				+ ", scanTime=" + scanTime + ", alive=" + alive + "]";
 	}
-	
-	
+
 }

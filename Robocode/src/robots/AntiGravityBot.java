@@ -12,8 +12,8 @@ import robots.util.*;
  */
 public class AntiGravityBot extends AdvancedRobot
 {
-	EnemyBot[] enemies;				//all enemies are stored in the hashtable
-	EnemyBot enemy;
+	Bot[] enemies;				//all enemies are stored in the hashtable
+	Bot enemy;
 	
 	int count;
 	double midpointstrength = 0;	//The strength of the gravity point in the middle of the field
@@ -26,7 +26,7 @@ public class AntiGravityBot extends AdvancedRobot
 		
 	public void run() {
 		
-		enemies = new EnemyBot[5];
+		enemies = new Bot[5];
 		
 		//Independência das partes do robô
 		setAdjustGunForRobotTurn(true);
@@ -60,7 +60,7 @@ public class AntiGravityBot extends AdvancedRobot
 			}
 		}
 		
-		enemies[i] = new EnemyBot();
+		enemies[i] = new Bot();
 		updateEnemy(enemies[i], e);		
 	}
 	
@@ -73,7 +73,7 @@ public class AntiGravityBot extends AdvancedRobot
 	    	    
 		for (int i=0;i<5;i++){
 			if(enemies[i]!= null){
-				EnemyBot e = enemies[i];
+				Bot e = enemies[i];
 				if (e.alive) {
 					p = new GravPoint(e.location() , -1000);
 			        force = p.power/Math.pow(RobotUtils.getRange(new Point2D.Double(getX(), getY()) ,p.location),2);
@@ -142,7 +142,7 @@ public class AntiGravityBot extends AdvancedRobot
 		
 	}
 	
-	public void updateEnemy(EnemyBot enemy, ScannedRobotEvent e){
+	public void updateEnemy(Bot enemy, ScannedRobotEvent e){
 		
 		double absbearing_rad = (getHeadingRadians()+e.getBearingRadians())%(2*Math.PI);
 		enemy.name = e.getName();

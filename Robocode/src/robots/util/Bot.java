@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 import robocode.ScannedRobotEvent;
 
-public class EnemyBot implements Serializable {
+public class Bot implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	public String name;
@@ -21,13 +21,13 @@ public class EnemyBot implements Serializable {
 	public boolean alive;
 	public boolean accelerating;
 
-	public EnemyBot() {
+	public Bot() {
 		reset();
 	}
 
 	public void update(ScannedRobotEvent e, double x, double y) {
 		this.accelerating = alive && e.getVelocity() > velocity;
-		// se está freiando ou parando de dar ré. (nao deve ser levado MUITO em
+		// se estÃ¡ freiando ou parando de dar rï¿½. (nao deve ser levado MUITO em
 		// conta, pode dar merda.
 		this.name = e.getName();
 		this.bearing = e.getBearingRadians();
@@ -39,6 +39,26 @@ public class EnemyBot implements Serializable {
 		this.alive = true;
 		this.x = x;
 		this.y = y;
+	}
+	
+	
+
+	public Bot(String name, double bearing, double distance, double energy,
+			double heading, double changehead, double velocity, double x,
+			double y, long scanTime, boolean alive, boolean accelerating) {
+		super();
+		this.name = name;
+		this.bearing = bearing;
+		this.distance = distance;
+		this.energy = energy;
+		this.heading = heading;
+		this.changehead = changehead;
+		this.velocity = velocity;
+		this.x = x;
+		this.y = y;
+		this.scanTime = scanTime;
+		this.alive = alive;
+		this.accelerating = accelerating;
 	}
 
 	public void update(ScannedRobotEvent e) {

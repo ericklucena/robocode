@@ -13,7 +13,7 @@ import robots.util.*;
  */
 public class DodgeBot extends AdvancedRobot
 {
-	private EnemyBot enemy = new EnemyBot();
+	private Bot enemy = new Bot();
 	boolean direction = false;
 		
 	public void run() {

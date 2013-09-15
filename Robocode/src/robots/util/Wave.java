@@ -14,7 +14,7 @@ public class Wave {
 	double traveled = 0;
 	double distance = 0;
 	double bearing = 0;
-	EnemyBot target = null;
+	Bot target = null;
 	boolean broken = false;
 	double escapeAngleForward;
 	double escapeAngleBackward;
@@ -27,7 +27,7 @@ public class Wave {
 		
 	}
 	
-	public Wave(double x, double y, double velocity, EnemyBot target){
+	public Wave(double x, double y, double velocity, Bot target){
 		
 		this.target = target;
 		this.position = new Point2D.Double(x,y);
@@ -116,11 +116,11 @@ public class Wave {
 		this.bearing = bearing;
 	}
 
-	public EnemyBot getTarget() {
+	public Bot getTarget() {
 		return target;
 	}
 
-	public void setTarget(EnemyBot target) {
+	public void setTarget(Bot target) {
 		this.target = target;
 	}
 

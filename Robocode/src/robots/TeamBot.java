@@ -16,16 +16,17 @@ import robots.util.*;
  */
 public class TeamBot extends TeamRobot
 {
-	private EnemyBot enemy = new EnemyBot();
-	public EnemyBot getEnemy() {
+	private Bot enemy = new Bot();
+	public Bot getEnemy() {
 		return enemy;
 	}
 
-	public void setEnemy(EnemyBot enemy) {
+	public void setEnemy(Bot enemy) {
 		this.enemy = enemy;
 	}
 
-	Hashtable <String, EnemyBot> enemies;
+	Hashtable <String, Bot> enemies;
+	Hashtable <String, Bot> friends;
 
 	boolean direction = false;
 
@@ -34,15 +35,20 @@ public class TeamBot extends TeamRobot
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
-		enemies = new Hashtable<String, EnemyBot>();
+		enemies = new Hashtable<String, Bot>();
+		friends = new Hashtable<String, Bot>();
 
 		do {
 
 			// Turn the radar if we have no more turn, starts it if it stops and at the start of round
 			if ( getRadarTurnRemaining() == 0.0 )
 				setTurnRadarRightRadians( Double.POSITIVE_INFINITY );
-			avaliation(); //evaluation() 
-			//e deveria ser verbo nao conjugado = evaluate()
+			try {
+				this.broadcastMessage(this.getBot());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			evaluate();
 			fire();
 			execute();
 		} while ( true );
@@ -58,11 +64,11 @@ public class TeamBot extends TeamRobot
 			return;
 		}
 		
-		EnemyBot enemy = (EnemyBot) enemies.get(e.getName());
+		Bot enemy = (Bot) enemies.get(e.getName());
 		
 		if((enemy == null) && (this.enemy.name.equals(""))){
 			System.out.println("A");
-			this.enemy = new EnemyBot();
+			this.enemy = new Bot();
 			this.enemy.name = e.getName();
 		}
 		
@@ -103,9 +109,19 @@ public class TeamBot extends TeamRobot
 	
 	public void onMessageReceived(MessageEvent e){
 		
-		EnemyBot enemy = (EnemyBot) e.getMessage();
+		Bot bot = (Bot) e.getMessage();
 		
-		enemies.put(enemy.name, enemy);
+		if(this.isTeammate(bot.getName())){
+			if(bot.alive){
+				friends.put(bot.name, bot);
+			}else{
+				friends.remove(bot.name);
+			}
+			
+		}else{
+			enemies.put(bot.name, bot);
+		}
+		
 		
 	}
 
@@ -131,14 +147,23 @@ public class TeamBot extends TeamRobot
 		}
 	}
 	
+	public void onDeath(){
+		try {
+			this.broadcastMessage(this.getDeadBot());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	
 	//Itera sobre o hastable e faz considerações sobre o que fazer
-	public void avaliation(){
+	public void evaluate(){
 		
-		Enumeration<EnemyBot> enemies = this.enemies.elements();
+		Enumeration<Bot> enemies = this.enemies.elements();
 		
 		while(enemies.hasMoreElements()){
-			EnemyBot enemy = enemies.nextElement();
+			Bot enemy = enemies.nextElement();
 			
 			System.out.println(enemy);
 			
@@ -161,6 +186,14 @@ public class TeamBot extends TeamRobot
 	 */
 	public void onHitWall(HitWallEvent e) {
 
+	}
+	
+	public Bot getBot(){
+		return new Bot(this.getName(), 0, 0, this.getEnergy(), this.getHeading(), 0, this.getVelocity(), this.getX(), this.getY(), this.getTime(), true, false);
+	}
+
+	public Bot getDeadBot(){
+		return new Bot(this.getName(), 0, 0, this.getEnergy(), this.getHeading(), 0, this.getVelocity(), this.getX(), this.getY(), this.getTime(), false, false);
 	}
 	
 

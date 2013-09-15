@@ -17,8 +17,8 @@ import robots.util.*;
  */
 public class BlindBot extends TeamRobot implements Droid
 {
-	private EnemyBot enemy = new EnemyBot();
-	Hashtable <String, EnemyBot> enemies;
+	private Bot enemy = new Bot();
+	Hashtable <String, Bot> enemies;
 	boolean direction = false;
 		
 	public void run() {
@@ -26,7 +26,7 @@ public class BlindBot extends TeamRobot implements Droid
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
-		enemies = new Hashtable<String, EnemyBot>();
+		enemies = new Hashtable<String, Bot>();
 		
 	    do {
 
@@ -55,10 +55,10 @@ public class BlindBot extends TeamRobot implements Droid
 	//Itera sobre o hastable e faz considerações sobre o que fazer
 	public void avaliation(){
 		
-		Enumeration<EnemyBot> enemies = this.enemies.elements();
+		Enumeration<Bot> enemies = this.enemies.elements();
 		
 		while(enemies.hasMoreElements()){
-			EnemyBot enemy = enemies.nextElement();
+			Bot enemy = enemies.nextElement();
 			if(enemy.name.equals(this.enemy.name)){
 				this.enemy = enemy;
 			}
@@ -104,7 +104,7 @@ public class BlindBot extends TeamRobot implements Droid
 	@Override
 	public void onMessageReceived(MessageEvent event) {
 		
-		EnemyBot enemy = (EnemyBot) event.getMessage();
+		Bot enemy = (Bot) event.getMessage();
 		enemies.put(enemy.name, enemy);
 		if(this.enemy.name.equals("")){
 			this.enemy = enemy;

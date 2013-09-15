@@ -21,12 +21,12 @@ public class CircularTargetBot extends TeamBot {
 			// talvez levar em conta a energia a ser usada no tiro
 			double bulletPower = Math.min(1.5,getEnergy());
 			
-			double absoluteBearing = getHeadingRadians() + getEnemy().getBearing();
-			double enemyX = getX() + getEnemy().getDistance() * Math.sin(absoluteBearing);
-			double enemyY = getY() + getEnemy().getDistance() * Math.cos(absoluteBearing);
-			double enemyHeading = getEnemy().getHeading();
-			double enemyVelocity = getEnemy().getVelocity();
-			double enemyTurningAngle = getEnemy().turning;
+			double absoluteBearing = getHeadingRadians() + getScanned().getBearing();
+			double enemyX = getX() + getScanned().getDistance() * Math.sin(absoluteBearing);
+			double enemyY = getY() + getScanned().getDistance() * Math.cos(absoluteBearing);
+			double enemyHeading = getScanned().getHeading();
+			double enemyVelocity = getScanned().getVelocity();
+			double enemyTurningAngle = getScanned().turning;
 			 
 			 
 			double deltaTime = 0;
@@ -64,14 +64,14 @@ public class CircularTargetBot extends TeamBot {
 	}
 	private static final int CIRCLE_RADIUS = 30;
 	public void onPaint(Graphics2D g){
-		if(getEnemy() != null){
+		if(getScanned() != null){
 			g.setStroke(new BasicStroke(2.0f));
 			g.setColor(new Color(0x00, 0xBB, 0xFF, 0x80));
-			g.drawOval( (int) (getEnemy().x - CIRCLE_RADIUS), (int) (getEnemy().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
+			g.drawOval( (int) (getScanned().x - CIRCLE_RADIUS), (int) (getScanned().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
 			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
 			double angle = getGunHeadingRadians();
 			g.drawOval( (int) (getX() - CIRCLE_RADIUS), (int) (getY() - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
-			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getEnemy().x + Math.sin(angle)*1000), (int)(getEnemy().y + Math.cos(angle)*1000));
+			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getScanned().x + Math.sin(angle)*1000), (int)(getScanned().y + Math.cos(angle)*1000));
 			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));
 			
 		}

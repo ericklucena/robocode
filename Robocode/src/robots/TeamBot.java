@@ -16,13 +16,14 @@ import robots.util.*;
  */
 public class TeamBot extends TeamRobot
 {
-	private Bot enemy = new Bot();
-	public Bot getEnemy() {
-		return enemy;
+	private Bot scanned=null;
+	
+	public Bot getScanned() {
+		return scanned;
 	}
 
 	public void setEnemy(Bot enemy) {
-		this.enemy = enemy;
+		this.scanned = enemy;
 	}
 
 	Hashtable <String, Bot> enemies;
@@ -46,7 +47,7 @@ public class TeamBot extends TeamRobot
 			try {
 				this.broadcastMessage(this.getBot());
 			} catch (IOException e) {
-				System.out.println("AWAY");
+//				System.out.println("AWAY");
 				e.printStackTrace();
 			}
 			evaluate();
@@ -66,67 +67,89 @@ public class TeamBot extends TeamRobot
 		}
 		Bot enemy = (Bot) enemies.get(e.getName());
 		
-		if((enemy == null) && (this.enemy.name.equals(""))){
-			System.out.println("A");
-			this.enemy = new Bot();
-			this.enemy.name = e.getName();
-		}
-		
-		if(this.enemy.name.equals(e.getName())){
-			double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
-			double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
-			//double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
-			double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
-			bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
-			double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
-
-			radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
-			setTurnRadarRightRadians(radarTurn);
-			//setTurnGunRightRadians(gunTurn);
-			setTurnRightRadians(bodyTurn);
-			evaluateScan(e);
-
-			double absbearing_rad = (getHeadingRadians()+e.getBearingRadians())%(2*Math.PI);
-			double x = getX()+Math.sin(absbearing_rad)*e.getDistance();
-			double y = getY()+Math.cos(absbearing_rad)*e.getDistance();
-			this.enemy.x = x;
-			this.enemy.y = y;
-
-
-			this.enemy.update(e);
-			enemies.put(this.enemy.getName(), this.enemy);
-			//fire(1);
-
+		if((enemy == null) && (this.scanned == null)){
+			this.scanned = new Bot();
+			this.scanned.name = e.getName();
+			
 			try {
-				this.broadcastMessage(this.enemy);
+				this.broadcastMessage(new LockMessage(this.getName(), scanned.name));
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
+			}			
+		}
+		
+		if(scanned!=null){
+			if(this.scanned.name.equals(e.getName())){
+				double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
+				double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
+				//double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
+				double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
+				bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
+				double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
+	
+				radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
+				setTurnRadarRightRadians(radarTurn);
+				//setTurnGunRightRadians(gunTurn);
+				setTurnRightRadians(bodyTurn);
+				evaluateScan(e);
+	
+				double absbearing_rad = (getHeadingRadians()+e.getBearingRadians())%(2*Math.PI);
+				double x = getX()+Math.sin(absbearing_rad)*e.getDistance();
+				double y = getY()+Math.cos(absbearing_rad)*e.getDistance();
+				this.scanned.x = x;
+				this.scanned.y = y;
+	
+	
+				this.scanned.update(e);
+				enemies.put(this.scanned.getName(), this.scanned);
+				//fire(1);
+	
+				try {
+					this.broadcastMessage(this.scanned);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		}
 	}
 	
 	public void onMessageReceived(MessageEvent e){
 		
-		Bot bot = (Bot) e.getMessage();
-		
-		if(bot.getName().equals("sample.Interactive")){
-			System.out.println(bot);
-		}
-		
-		if(this.isTeammate(bot.getName())){
-			if(bot.alive){
-				friends.put(bot.name, bot);
-			}else{
-				friends.remove(bot.name);
+		if(e.getMessage() instanceof DeathMessage){
+			System.out.println("Death");
+			DeathMessage d = (DeathMessage) e.getMessage();
+			System.out.println(d.enemyName);
+			enemies.remove(d.enemyName);
+		}else if(e.getMessage() instanceof LockMessage){
+			System.out.println("Lock");
+			LockMessage l = (LockMessage) e.getMessage();
+			
+			if(this.scanned!=null){
+				if(l.enemyName.equals(scanned.name) &&  l.name.compareTo(getName())<0){
+					this.scanned = null;
+				}
 			}
 			
 		}else{
-			if(bot.alive){
-				enemies.put(bot.name, bot);
+			
+			Bot bot = (Bot) e.getMessage();
+			
+			if(this.isTeammate(bot.getName())){
+				if(bot.alive){
+					friends.put(bot.name, bot);
+				}else{
+					friends.remove(bot.name);
+				}
+				
 			}else{
-				System.out.println(bot);
-				enemies.remove(bot.name);
+				if(bot.alive){
+					enemies.put(bot.name, bot);
+				}else{
+//					System.out.println(bot);
+					enemies.remove(bot.name);
+				}
 			}
 		}
 		
@@ -134,7 +157,7 @@ public class TeamBot extends TeamRobot
 	}
 
 	public void evaluateScan(ScannedRobotEvent e){
-		if(e.getEnergy()<enemy.getEnergy()){
+		if(e.getEnergy()<scanned.getEnergy()){
 			if(direction){
 				setAhead(50);
 			}else{
@@ -147,10 +170,10 @@ public class TeamBot extends TeamRobot
 
 	//Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e){
-		if(e.getName().equals(enemy.getName())){
+		if(e.getName().equals(scanned.getName())){
 			System.out.println("Yippee ki-yay, motherfucker!");
 			enemies.remove(e.getName());
-			enemy.reset();
+			scanned = null;
 		}
 		
 		if(!isTeammate(e.getName())){
@@ -161,11 +184,11 @@ public class TeamBot extends TeamRobot
 		
 	}
 	
-	public void onDeath(){
+	public void onDeath(DeathEvent de){
 		try {
+			this.broadcastMessage(new DeathMessage("Fodase", "HUEHUE"));
+			System.out.println("MORRI CARAI!!!");
 			//this.broadcastMessage(this.getDeadBot());
-			enemy.alive = false;
-			this.broadcastMessage(enemy);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -181,22 +204,22 @@ public class TeamBot extends TeamRobot
 		while(enemies.hasMoreElements()){
 			Bot enemy = enemies.nextElement();
 			
-			System.out.println(enemy);
+//			System.out.println(enemy);
 			
 		}
 		
-		System.out.println("----");
+//		System.out.println("----");
 		
 		Enumeration<Bot> friends = this.friends.elements();
 		
 		while(friends.hasMoreElements()){
 			Bot enemy = friends.nextElement();
 			
-			System.out.println(enemy);
+//			System.out.println(enemy);
 			
 		}
 		
-		System.out.println();
+//		System.out.println();
 		
 	}
 	public void fire(){

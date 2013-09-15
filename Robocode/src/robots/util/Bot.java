@@ -18,7 +18,7 @@ public class Bot implements Serializable {
 	public double y;
 	public long scanTime;
 	public boolean alive;
-	public boolean accelerating;
+	public double acceleration;
 	public double turning = 0.0;
 
 	public Bot() {
@@ -26,17 +26,15 @@ public class Bot implements Serializable {
 	}
 
 	public void update(ScannedRobotEvent e, double x, double y) {
-		this.accelerating = alive && e.getVelocity() > velocity;
-		// se está freiando ou parando de dar r�. (nao deve ser levado MUITO em
-		// conta, pode dar merda.
 		this.name = e.getName();
 		this.bearing = e.getBearingRadians();
 		this.distance = e.getDistance();
 		this.energy = e.getEnergy();
 		
 		this.turning = (e.getHeadingRadians() - this.heading)/(e.getTime() - this.scanTime);
-		
 		this.heading = e.getHeadingRadians();
+		
+		this.acceleration = e.getVelocity() - this.velocity;
 		this.velocity = e.getVelocity();
 		
 		this.scanTime = e.getTime();
@@ -61,7 +59,7 @@ public class Bot implements Serializable {
 		this.y = y;
 		this.scanTime = scanTime;
 		this.alive = alive;
-		this.accelerating = accelerating;
+//		this.accelerating = accelerating;
 	}
 
 	public void update(ScannedRobotEvent e) {

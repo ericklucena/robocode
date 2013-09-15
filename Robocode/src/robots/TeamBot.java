@@ -46,6 +46,7 @@ public class TeamBot extends TeamRobot
 			try {
 				this.broadcastMessage(this.getBot());
 			} catch (IOException e) {
+				System.out.println("AWAY");
 				e.printStackTrace();
 			}
 			evaluate();
@@ -111,6 +112,10 @@ public class TeamBot extends TeamRobot
 		
 		Bot bot = (Bot) e.getMessage();
 		
+		if(bot.getName().equals("sample.Interactive")){
+			System.out.println(bot);
+		}
+		
 		if(this.isTeammate(bot.getName())){
 			if(bot.alive){
 				friends.put(bot.name, bot);
@@ -119,7 +124,12 @@ public class TeamBot extends TeamRobot
 			}
 			
 		}else{
-			enemies.put(bot.name, bot);
+			if(bot.alive){
+				enemies.put(bot.name, bot);
+			}else{
+				System.out.println(bot);
+				enemies.remove(bot.name);
+			}
 		}
 		
 		
@@ -142,14 +152,21 @@ public class TeamBot extends TeamRobot
 		if(e.getName().equals(enemy.getName())){
 			System.out.println("Yippee ki-yay, motherfucker!");
 			enemy.reset();
-		}else{
-			enemies.remove(e.getName());
 		}
+		
+		if(!isTeammate(e.getName())){
+			enemies.remove(e.getName());
+		}else{
+			friends.remove(e.getName());
+		}
+		
 	}
 	
 	public void onDeath(){
 		try {
-			this.broadcastMessage(this.getDeadBot());
+			//this.broadcastMessage(this.getDeadBot());
+			enemy.alive = false;
+			this.broadcastMessage(enemy);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -168,6 +185,18 @@ public class TeamBot extends TeamRobot
 			System.out.println(enemy);
 			
 		}
+		
+		System.out.println("----");
+		
+		Enumeration<Bot> friends = this.friends.elements();
+		
+		while(friends.hasMoreElements()){
+			Bot enemy = friends.nextElement();
+			
+			System.out.println(enemy);
+			
+		}
+		
 		System.out.println();
 		
 	}

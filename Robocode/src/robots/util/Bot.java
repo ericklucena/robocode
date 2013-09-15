@@ -121,11 +121,10 @@ public class Bot implements Serializable {
 
 	@Override
 	public String toString() {
-		return "EnemyBot [name=" + name + ", bearing=" + bearing
+		return  name+" [x=" + x + ", y=" + y + ", bearing=" + bearing
 				+ ", distance=" + distance + ", energy=" + energy
 				+ ", heading=" + heading + ", changehead=" + changehead
-				+ ", velocity=" + velocity + ", x=" + x + ", y=" + y
-				+ ", scanTime=" + scanTime + ", alive=" + alive + "]";
+				+ ", velocity=" + velocity + ", scanTime=" + scanTime + ", alive=" + alive + "]";
 	}
 
 }

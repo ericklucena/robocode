@@ -16,18 +16,18 @@ public class PredictionTargetBot extends TeamBot {
 	Queue<Point2D> toDraw = new LinkedList<Point2D>();
 	
 	public void fire(){
-			
+			if(getTarget() == null) return;
 //			double angle = RobotUtils.absbearing(location(),getEnemy().location()) - getHeading();
 			// talvez levar em conta a energia a ser usada no tiro
 			double bulletPower = Math.min(1.5,getEnergy());
 			
-			double absoluteBearing = getHeadingRadians() + getEnemy().getBearing();
-			double enemyX = getX() + getEnemy().getDistance() * Math.sin(absoluteBearing);
-			double enemyY = getY() + getEnemy().getDistance() * Math.cos(absoluteBearing);
-			double enemyHeading = getEnemy().getHeading();
-			double enemyVelocity = getEnemy().getVelocity();
-			double enemyTurningAngle = getEnemy().turning;
-			double enemyAcceleration = getEnemy().acceleration;
+			double absoluteBearing = getHeadingRadians() + getTarget().getBearing();
+			double enemyX = getX() + getTarget().getDistance() * Math.sin(absoluteBearing);
+			double enemyY = getY() + getTarget().getDistance() * Math.cos(absoluteBearing);
+			double enemyHeading = getTarget().getHeading();
+			double enemyVelocity = getTarget().getVelocity();
+			double enemyTurningAngle = getTarget().turning;
+			double enemyAcceleration = getTarget().acceleration;
 			 
 			double deltaTime = 0;
 			double battleFieldHeight = getBattleFieldHeight(), 
@@ -78,15 +78,14 @@ public class PredictionTargetBot extends TeamBot {
 	public void onPaint(Graphics2D g){
 		BasicStroke stroke = new BasicStroke(2.0f);
 		g.setStroke(stroke);
-		if(getEnemy() != null){
+		if(getTarget() != null){
 			g.setColor(new Color(0x00, 0xBB, 0xFF, 0x80));
-			g.drawOval( (int) (getEnemy().x - CIRCLE_RADIUS), (int) (getEnemy().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
+			g.drawOval( (int) (getTarget().x - CIRCLE_RADIUS), (int) (getTarget().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
 			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
 			double angle = getGunHeadingRadians();
 			g.drawOval( (int) (getX() - CIRCLE_RADIUS), (int) (getY() - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
-			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getEnemy().x + Math.sin(angle)*1000), (int)(getEnemy().y + Math.cos(angle)*1000));
-			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));
-			
+			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getX() + Math.sin(angle)*1000), (int)(getY() + Math.cos(angle)*1000));
+			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));	
 		}
 		
 		if(!toDraw.isEmpty()){

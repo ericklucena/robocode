@@ -7,16 +7,16 @@ import robots.util.RobotUtils;
 import robocode.util.Utils;
 public class LinearTargetBot extends TeamBot {
 	public void fire(){
-		
+			if(getTarget() == null) return;
 //			double angle = RobotUtils.absbearing(location(),getEnemy().location()) - getHeading();
 			// talvez levar em conta a energia a ser usada no tiro
 			double bulletPower = Math.min(1.5,getEnergy());
 			
-			double absoluteBearing = getHeadingRadians() + getScanned().getBearing();
-			double enemyX = getX() + getScanned().getDistance() * Math.sin(absoluteBearing);
-			double enemyY = getY() + getScanned().getDistance() * Math.cos(absoluteBearing);
-			double enemyHeading = getScanned().getHeading();
-			double enemyVelocity = getScanned().getVelocity();
+			double absoluteBearing = getHeadingRadians() + getTarget().getBearing();
+			double enemyX = getX() + getTarget().getDistance() * Math.sin(absoluteBearing);
+			double enemyY = getY() + getTarget().getDistance() * Math.cos(absoluteBearing);
+			double enemyHeading = getTarget().getHeading();
+			double enemyVelocity = getTarget().getVelocity();
 			 
 			 
 			double deltaTime = 0;

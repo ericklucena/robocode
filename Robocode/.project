@@ -14,4 +14,11 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>lunartwins</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/lunartwins</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

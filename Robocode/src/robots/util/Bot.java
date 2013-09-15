@@ -112,6 +112,10 @@ public class Bot implements Serializable {
 		return heading;
 	}
 
+	public long getScanTime() {
+		return scanTime;
+	}
+
 	public double getVelocity() {
 		return velocity;
 	}

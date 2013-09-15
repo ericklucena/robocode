@@ -64,7 +64,6 @@ public class TeamBot extends TeamRobot
 		if(isTeammate(e.getName())){
 			return;
 		}
-		
 		Bot enemy = (Bot) enemies.get(e.getName());
 		
 		if((enemy == null) && (this.enemy.name.equals(""))){
@@ -104,7 +103,6 @@ public class TeamBot extends TeamRobot
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-
 		}
 	}
 	
@@ -151,6 +149,7 @@ public class TeamBot extends TeamRobot
 	public void onRobotDeath(RobotDeathEvent e){
 		if(e.getName().equals(enemy.getName())){
 			System.out.println("Yippee ki-yay, motherfucker!");
+			enemies.remove(e.getName());
 			enemy.reset();
 		}
 		
@@ -218,11 +217,11 @@ public class TeamBot extends TeamRobot
 	}
 	
 	public Bot getBot(){
-		return new Bot(this.getName(), 0, 0, this.getEnergy(), this.getHeading(), 0, this.getVelocity(), this.getX(), this.getY(), this.getTime(), true, false);
+		return new Bot(this.getName(), 0, 0, this.getEnergy(), this.getHeading(), this.getVelocity(), this.getX(), this.getY(), this.getTime(), true, false);
 	}
 
 	public Bot getDeadBot(){
-		return new Bot(this.getName(), 0, 0, this.getEnergy(), this.getHeading(), 0, this.getVelocity(), this.getX(), this.getY(), this.getTime(), false, false);
+		return new Bot(this.getName(), 0, 0, this.getEnergy(), this.getHeading(), this.getVelocity(), this.getX(), this.getY(), this.getTime(), false, false);
 	}
 	
 

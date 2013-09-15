@@ -13,13 +13,13 @@ public class Bot implements Serializable {
 	public double distance;
 	public double energy;
 	public double heading;
-	public double changehead;
 	public double velocity;
 	public double x;
 	public double y;
 	public long scanTime;
 	public boolean alive;
 	public boolean accelerating;
+	public double turning = 0.0;
 
 	public Bot() {
 		reset();
@@ -33,8 +33,12 @@ public class Bot implements Serializable {
 		this.bearing = e.getBearingRadians();
 		this.distance = e.getDistance();
 		this.energy = e.getEnergy();
+		
+		this.turning = (e.getHeadingRadians() - this.heading)/(e.getTime() - this.scanTime);
+		
 		this.heading = e.getHeadingRadians();
 		this.velocity = e.getVelocity();
+		
 		this.scanTime = e.getTime();
 		this.alive = true;
 		this.x = x;
@@ -44,7 +48,7 @@ public class Bot implements Serializable {
 	
 
 	public Bot(String name, double bearing, double distance, double energy,
-			double heading, double changehead, double velocity, double x,
+			double heading, double velocity, double x,
 			double y, long scanTime, boolean alive, boolean accelerating) {
 		super();
 		this.name = name;
@@ -52,7 +56,6 @@ public class Bot implements Serializable {
 		this.distance = distance;
 		this.energy = energy;
 		this.heading = heading;
-		this.changehead = changehead;
 		this.velocity = velocity;
 		this.x = x;
 		this.y = y;
@@ -123,8 +126,9 @@ public class Bot implements Serializable {
 	public String toString() {
 		return  name+" [x=" + x + ", y=" + y + ", bearing=" + bearing
 				+ ", distance=" + distance + ", energy=" + energy
-				+ ", heading=" + heading + ", changehead=" + changehead
+				+ ", heading=" + heading + ", turning=" + turning
 				+ ", velocity=" + velocity + ", scanTime=" + scanTime + ", alive=" + alive + "]";
+
 	}
 
 }

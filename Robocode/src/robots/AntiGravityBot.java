@@ -143,13 +143,12 @@ public class AntiGravityBot extends AdvancedRobot
 	}
 	
 	public void updateEnemy(Bot enemy, ScannedRobotEvent e){
-		
 		double absbearing_rad = (getHeadingRadians()+e.getBearingRadians())%(2*Math.PI);
 		enemy.name = e.getName();
 		enemy.energy = e.getEnergy();
-		double h = RobotUtils.normaliseBearing(e.getHeadingRadians() - enemy.heading);
-		h = h/(getTime() - enemy.scanTime);
-		enemy.changehead = h;
+//		double h = RobotUtils.normaliseBearing(e.getHeadingRadians() - enemy.heading);
+//		h = h/(getTime() - enemy.scanTime);
+//		enemy.changehead = h;
 		double x = getX()+Math.sin(absbearing_rad)*e.getDistance();
 		double y = getY()+Math.cos(absbearing_rad)*e.getDistance();
 		enemy.location().setLocation(x, y);

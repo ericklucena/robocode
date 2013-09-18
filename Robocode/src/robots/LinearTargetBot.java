@@ -11,10 +11,8 @@ public class LinearTargetBot extends TeamBot {
 //			double angle = RobotUtils.absbearing(location(),getEnemy().location()) - getHeading();
 			// talvez levar em conta a energia a ser usada no tiro
 			double bulletPower = Math.min(1.5,getEnergy());
-			
-			double absoluteBearing = getHeadingRadians() + getTarget().getBearing();
-			double enemyX = getX() + getTarget().getDistance() * Math.sin(absoluteBearing);
-			double enemyY = getY() + getTarget().getDistance() * Math.cos(absoluteBearing);
+			double enemyX = getTarget().x;
+			double enemyY = getTarget().y;
 			double enemyHeading = getTarget().getHeading();
 			double enemyVelocity = getTarget().getVelocity();
 			 

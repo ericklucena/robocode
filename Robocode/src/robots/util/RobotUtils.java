@@ -2,8 +2,6 @@ package robots.util;
 
 import java.awt.geom.Point2D;
 
-import robocode.ScannedRobotEvent;
-
 public class RobotUtils {
 	
 	

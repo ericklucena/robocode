@@ -1,9 +1,8 @@
 package robots;
 
-import java.awt.geom.Point2D;
 
 import robots.TeamBot;
-import robots.util.RobotUtils;
+import robots.util.Bot;
 import robocode.util.Utils;
 public class HeadOnTargetBot extends TeamBot {
 	public void fire(){
@@ -11,11 +10,8 @@ public class HeadOnTargetBot extends TeamBot {
 //			double angle = RobotUtils.absbearing(location(),getEnemy().location()) - getHeading();
 			// talvez levar em conta a energia a ser usada no tiro
 			double bulletPower = Math.min(1.5,getEnergy());
-			
-			double absoluteBearing = getHeadingRadians() + getTarget().getBearing();
-			double enemyX = getX() + getTarget().getDistance() * Math.sin(absoluteBearing);
-			double enemyY = getY() + getTarget().getDistance() * Math.cos(absoluteBearing);
-			
+			double enemyX = getTarget().x;
+			double enemyY = getTarget().y;
 			double theta = Utils.normalAbsoluteAngle(Math.atan2(
 			    enemyX - getX(), enemyY - getY()));
 			 
@@ -27,6 +23,23 @@ public class HeadOnTargetBot extends TeamBot {
 		}
 		else{
 		}
+	}
+	public void evaluate(){
+		setTarget(null);
+		//TODO levar em conta mais que a distancia.
+		for (Bot enemy : enemies.values()) {
+			if(getTarget() == null || getTarget().distance > enemy.distance){
+				setTarget(enemy);
+			}
+			System.out.println(enemy);
+		}
+		System.out.println("--");
+
+		for (Bot friend : friends.values()) {
+			System.out.println(friend);
+		}
+
+		System.out.println();
 	}
 
 }

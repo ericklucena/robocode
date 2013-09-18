@@ -2,11 +2,9 @@ package robots;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Hashtable;
 
 import robocode.*;
-import robocode.util.Utils;
 import robots.util.*;
 
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html

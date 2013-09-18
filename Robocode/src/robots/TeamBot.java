@@ -17,6 +17,7 @@ import robots.util.*;
 public class TeamBot extends TeamRobot
 {
 	private Bot scanned=null;
+	private long lastScannedTime;
 	
 	public Bot getScanned() {
 		return scanned;
@@ -50,6 +51,11 @@ public class TeamBot extends TeamRobot
 //				System.out.println("AWAY");
 				e.printStackTrace();
 			}
+			
+			if((getTime()-lastScannedTime)>20){
+				enemies.clear();
+			}
+			
 			evaluate();
 			fire();
 			execute();
@@ -70,6 +76,7 @@ public class TeamBot extends TeamRobot
 		if((enemy == null) && (this.scanned == null)){
 			this.scanned = new Bot();
 			this.scanned.name = e.getName();
+			this.lastScannedTime = getTime();
 			
 			try {
 				this.broadcastMessage(new LockMessage(this.getName(), scanned.name));

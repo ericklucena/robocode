@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import robocode.*;
+import robocode.util.Utils;
 import robots.util.*;
 
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
@@ -147,61 +148,39 @@ public class TeamBot extends TeamRobot {
 		goTo(getX() - xforce, getY() - yforce);
 	}
 
-	public void onMessageReceived(MessageEvent e) {
-		Bot bot = (Bot) e.getMessage();
-		if (this.isTeammate(bot.getName())) {
-			Bot old = friends.get(bot.getName());
-			if (old != null && old.getScanTime() > bot.scanTime) {
-				// DO NOTHING HAHAHAHA ZUEI
-			} else {
-				friends.put(bot.name, bot);
-			}
-
-		} else {
-			Bot old = enemies.get(bot.getName());
-			if (old != null && old.getScanTime() > bot.scanTime) {
-				// DO NOTHING HAHAHAHA ZUEI
-			} else {
-				enemies.put(bot.name, bot);
-			}
-		}
-
-	}
-
-	public void onMessageReceived2(MessageEvent e) {
-
-		if (e.getMessage() instanceof DeathMessage) {
+public void onMessageReceived(MessageEvent e){
+		
+		if(e.getMessage() instanceof DeathMessage){
 			System.out.println("Death");
 			DeathMessage d = (DeathMessage) e.getMessage();
 			System.out.println(d.enemyName);
 			enemies.remove(d.enemyName);
-		} else if (e.getMessage() instanceof LockMessage) {
+		}else if(e.getMessage() instanceof LockMessage){
 			System.out.println("Lock");
 			LockMessage l = (LockMessage) e.getMessage();
-
-			if (this.scanned != null) {
-				if (l.enemyName.equals(scanned.name)
-						&& l.name.compareTo(getName()) < 0) {
+			
+			if(this.scanned!=null){
+				if(l.enemyName.equals(scanned.name) &&  l.name.compareTo(getName())<0){
 					this.scanned = null;
 				}
 			}
-
-		} else {
-
+			
+		}else{
+			
 			Bot bot = (Bot) e.getMessage();
-
-			if (this.isTeammate(bot.getName())) {
-				if (bot.alive) {
+			
+			if(this.isTeammate(bot.getName())){
+				if(bot.alive){
 					friends.put(bot.name, bot);
-				} else {
+				}else{
 					friends.remove(bot.name);
 				}
-
-			} else {
-				if (bot.alive) {
+				
+			}else{
+				if(bot.alive){
 					enemies.put(bot.name, bot);
-				} else {
-					// System.out.println(bot);
+				}else{
+//					System.out.println(bot);
 					enemies.remove(bot.name);
 				}
 			}
@@ -222,29 +201,44 @@ public class TeamBot extends TeamRobot {
 			this.lastScannedTime = getTime();
 
 			try {
-				this.broadcastMessage(new LockMessage(this.getName(),
-						scanned.name));
+				this.broadcastMessage(new LockMessage(this.getName(), scanned.name));
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
 
-		setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
-		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians())
-				% (2 * Math.PI);
+		//Calculo de posição do robô sob o scan
+		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians()) % (2 * Math.PI);
 		double x = getX() + Math.sin(absbearing_rad) * e.getDistance();
 		double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
 		Bot scanned = new Bot();
 		scanned.update(e, x, y);
 
 		enemies.put(scanned.getName(), scanned);
+		if(scanned!=null){
+			if(this.scanned.name.equals(e.getName())){
+				//Calculo de movimentação do radar para manter o alvo sob scan constante
+				double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
+				double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
+				//double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
+				double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
+				bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
+				double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
 		
-		try {
-			this.broadcastMessage(scanned);
-		} catch (IOException e1) {
-			e1.printStackTrace();
+				radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
+				setTurnRadarRightRadians(radarTurn);
+				
+				try {
+					this.broadcastMessage(scanned);
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
 		}
+		
+		
+		
 	}
 
 	void goTo(double x, double y) {
@@ -274,6 +268,13 @@ public class TeamBot extends TeamRobot {
 
 	// Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e) {
+		
+		if(e.getName().equals(scanned.getName())){
+			System.out.println("Yippee ki-yay, motherfucker!");
+			enemies.remove(e.getName());
+			scanned = null;
+		}
+		
 		if (!isTeammate(e.getName())) {
 			enemies.remove(e.getName());
 		} else {

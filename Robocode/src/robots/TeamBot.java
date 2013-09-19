@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.io.ObjectInputStream.GetField;
 import java.util.Hashtable;
+import java.util.Random;
 
 import robocode.*;
 import robocode.exception.WinException;
@@ -20,6 +21,7 @@ public class TeamBot extends TeamRobot {
 	
 	private Bot scanned = null;
 	private long lastScannedTime;
+	Point2D safePoint; 
 
 	public Bot getScanned() {
 		return scanned;
@@ -47,6 +49,7 @@ public class TeamBot extends TeamRobot {
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
+		safePoint = new Point2D.Double(getBattleFieldWidth()/2, getBattleFieldHeight()/2); 
 		enemies = new Hashtable<String, Bot>();
 		friends = new Hashtable<String, Bot>();
 
@@ -117,17 +120,15 @@ public class TeamBot extends TeamRobot {
 		
 		//Descobre um ponto de paz e aplica uma gravidade positiva, para não deixar o robô parado
 		
-		p = new GravPoint(getClearPoint(3), 1000);
-		force = p.power
-				/ Math.pow(RobotUtils.getRange(new Point2D.Double(getX(),
-						getY()), p.location), 2);
-		// Find the bearing from the point to us
-		ang = RobotUtils.normaliseBearing(Math.PI
-				/ 2
-				- Math.atan2(getY() - p.location.getY(), getX()
-						- p.location.getX()));
-		// Add the components of this force to the total force in their
-		// respective directions
+		if(getTime()%35 == 0){
+			safePoint = getSafePoint(5);
+		}
+		
+		p = new GravPoint(safePoint, 1000);
+		System.out.println(safePoint);
+		force = p.power	/ Math.pow(RobotUtils.getRange(new Point2D.Double(getX(), getY()), p.location), 2);
+		ang = RobotUtils.normaliseBearing(Math.PI/2	- Math.atan2(getY() - p.location.getY(), getX()	- p.location.getX()));
+
 		xforce += Math.sin(ang) * force;
 		yforce += Math.cos(ang) * force;
 		
@@ -353,9 +354,11 @@ public void onMessageReceived(MessageEvent e){
 	}
 	
 	
-	public Point2D getClearPoint(int gridSize){
+	public Point2D getSafePoint(int gridSize){
 		
 		int[][] grid = new int[gridSize][gridSize];
+		
+		Point2D[] bestPoints = new Point2D.Double[gridSize*gridSize];
 		
 		int height = (int) this.getBattleFieldHeight();
 		int width = (int) this.getBattleFieldWidth();
@@ -374,6 +377,7 @@ public void onMessageReceived(MessageEvent e){
 		}
 		
 		int min=5000;
+		int k=0;
 		
 		int x=0, y=0;
 		
@@ -387,8 +391,26 @@ public void onMessageReceived(MessageEvent e){
 			}			
 		}
 		
+		for (int i = 0; i < grid.length; i++) {
+			for (int j = 0; j < grid[i].length; j++) {
+				if(grid[i][j]==min){
+					bestPoints[k++] = new Point2D.Double(i, j);
+				}
+			}			
+		}
+		
+		Random r = new Random();
+		
+		Point2D p = bestPoints[r.nextInt(k)];
+		
+		x = (int) p.getX();
+		y = (int) p.getY();
+		
 		x *= wIncrement;
 		y *= hIncrement;
+		
+		x += wIncrement;
+		y += hIncrement;
 		
 		return new Point2D.Double(x, y);
 	}

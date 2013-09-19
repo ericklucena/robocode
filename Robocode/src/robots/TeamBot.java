@@ -3,9 +3,7 @@ package robots;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.Random;
 
 import robocode.*;
@@ -40,8 +38,8 @@ public class TeamBot extends TeamRobot {
 		this.target = enemy;
 	}
 
-	public Map<String, Bot> enemies;
-	public Map<String, Bot> friends;
+	public Hashtable<String, Bot> enemies;
+	public Hashtable<String, Bot> friends;
 
 	boolean direction = false;
 
@@ -50,13 +48,12 @@ public class TeamBot extends TeamRobot {
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
-
 		setBodyColor(Color.RED);
-		
+
 		safePoint = new Point2D.Double(getBattleFieldWidth() / 2,
 				getBattleFieldHeight() / 2);
-		enemies = new HashMap<String, Bot>();
-		friends = new HashMap<String, Bot>();
+		enemies = new Hashtable<String, Bot>();
+		friends = new Hashtable<String, Bot>();
 
 		do {
 
@@ -71,9 +68,7 @@ public class TeamBot extends TeamRobot {
 				e.printStackTrace();
 			}
 
-			if ((getTime() - lastScannedTime) > 20) {
-				enemies.clear();
-			}
+			cleanHashtable();
 
 			evaluate();
 			antiGravMove();
@@ -91,7 +86,6 @@ public class TeamBot extends TeamRobot {
 		GravPoint p;
 
 		for (Bot b : enemies.values()) {
-			System.out.println(b.name);
 			p = new GravPoint(b.location(), -500);
 			force = p.power
 					/ Math.pow(RobotUtils.getRange(new Point2D.Double(getX(),
@@ -126,7 +120,7 @@ public class TeamBot extends TeamRobot {
 		// Descobre um ponto de paz e aplica uma gravidade positiva, para não
 		// deixar o robô parado
 
-		if (getTime() % 35 == 0) {
+		if (getTime() % 20 == 0) {
 			safePoint = getSafePoint(5);
 		}
 
@@ -144,23 +138,6 @@ public class TeamBot extends TeamRobot {
 		yforce += Math.cos(ang) * force;
 
 		// Fim clear point
-
-		// TODO marcando para olhar depois e tweakar.
-		// if(target != null){
-		// p = new GravPoint(target.location(), +1000);
-		// force = p.power
-		// / Math.pow(RobotUtils.getRange(new Point2D.Double(getX(),
-		// getY()), p.location), 1.5);
-		// // Find the bearing from the point to us
-		// ang = RobotUtils.normaliseBearing(Math.PI
-		// / 2
-		// - Math.atan2(getY() - p.location.getY(), getX()
-		// - p.location.getX()));
-		// // Add the components of this force to the total force in their
-		// // respective directions
-		// xforce += Math.sin(ang) * force;
-		// yforce += Math.cos(ang) * force;
-		// }
 
 		/**
 		 * The following four lines add wall avoidance. They will only affect us
@@ -188,39 +165,31 @@ public class TeamBot extends TeamRobot {
 			LockMessage l = (LockMessage) e.getMessage();
 
 			if (this.scanned != null) {
-				if (enemies.size() >= (friends.size() + 1)) {
-					if (l.enemyName.equals(scanned.name)
-							&& l.name.compareTo(getName()) < 0) {
-						this.scanned = null;
-					}
+				if (l.enemyName.equals(scanned.name)
+						&& l.name.compareTo(getName()) < 0) {
+					this.scanned = null;
 				}
 			}
 
 		} else {
 
 			Bot bot = (Bot) e.getMessage();
-
 			bot.updateDistance(this.getX(), this.getY());
-			System.out.println("recebi " + bot);
+
 			if (this.isTeammate(bot.getName())) {
-				System.out.println("amigo");
-//				if (bot.alive) {
+				if (bot.alive) {
 					friends.put(bot.name, bot);
-//				} else {
-//					friends.remove(bot.name);
-//				}
+				} else {
+					friends.remove(bot.name);
+				}
 
 			} else {
-//				if (bot.alive) {
-					System.out.println("inimigo");
+				if (bot.alive) {
 					enemies.put(bot.name, bot);
-					for(Bot b : enemies.values()){
-						System.out.println("recebi e iterei " + b);
-					}
-//				} else {
-					 
-//					enemies.remove(bot.name);
-//				}
+				} else {
+					// System.out.println(bot);
+					enemies.remove(bot.name);
+				}
 			}
 		}
 	}
@@ -246,7 +215,7 @@ public class TeamBot extends TeamRobot {
 				e1.printStackTrace();
 			}
 		}
-		
+
 		// Calculo de posição do robô sob o scan
 		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians())
 				% (2 * Math.PI);
@@ -254,52 +223,34 @@ public class TeamBot extends TeamRobot {
 		double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
 		Bot scanned = new Bot();
 		scanned.update(e, x, y);
-		
+
 		enemies.put(scanned.getName(), scanned);
-		try {
-			this.broadcastMessage(scanned);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		
 		if (this.scanned != null) {
-		
-			if (this.scanned.name != null) {
-		
-				if (e != null){
-		
-					if (e.getName() != null){
-		
-						if( this.scanned.name.equals(e.getName())) {
-		
-					this.lastScannedTime = getTime();
-					// Calculo de movimentação do radar para manter o alvo sob
-					// scan
-					// constante
-					double angleToEnemy = getHeadingRadians()
-							+ e.getBearingRadians();
-					double radarTurn = Utils.normalRelativeAngle(angleToEnemy
-							- getRadarHeadingRadians());
-					// double gunTurn = Utils.normalRelativeAngle( angleToEnemy
-					// -
-					// getGunHeadingRadians() );
-					double bodyTurn = (Math.PI / 2) + getGunHeadingRadians();
-					bodyTurn = Utils.normalRelativeAngle(bodyTurn
-							- getHeadingRadians());
-					double extraTurn = Math.min(
-							Math.atan(36.0 / e.getDistance()),
-							Rules.RADAR_TURN_RATE_RADIANS);
+			if (this.scanned.name.equals(e.getName())) {
+				this.lastScannedTime = getTime();
+				// Calculo de movimentação do radar para manter o alvo sob scan
+				// constante
+				double angleToEnemy = getHeadingRadians()
+						+ e.getBearingRadians();
+				double radarTurn = Utils.normalRelativeAngle(angleToEnemy
+						- getRadarHeadingRadians());
+				// double gunTurn = Utils.normalRelativeAngle( angleToEnemy -
+				// getGunHeadingRadians() );
+				double bodyTurn = (Math.PI / 2) + getGunHeadingRadians();
+				bodyTurn = Utils.normalRelativeAngle(bodyTurn
+						- getHeadingRadians());
+				double extraTurn = Math.min(Math.atan(36.0 / e.getDistance()),
+						Rules.RADAR_TURN_RATE_RADIANS);
 
-					radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
-					setTurnRadarRightRadians(radarTurn);
+				radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
+				setTurnRadarRightRadians(radarTurn);
 
-					
-				}else {
-					System.out.println("333");
-				}
+				try {
+					this.broadcastMessage(scanned);
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
 			}
-			} 
 		}
 	}
 
@@ -331,15 +282,14 @@ public class TeamBot extends TeamRobot {
 	// Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e) {
 
-
-		if (scanned != null && e.getName().equals(scanned.getName())) {
-			System.out.println("Yippee ki-yay, motherfucker!");
-//			enemies.remove(e.getName());
-			scanned = null;
-		}
+		
 
 		if (!isTeammate(e.getName())) {
 			enemies.remove(e.getName());
+			if (e.getName().equals(scanned.getName())) {
+				System.out.println("Yippee ki-yay, motherfucker!");
+				scanned = null;
+			}
 		} else {
 			friends.remove(e.getName());
 		}
@@ -473,6 +423,23 @@ public class TeamBot extends TeamRobot {
 
 		return new Point2D.Double(x, y);
 
+	}
+
+	public void cleanHashtable() {
+		
+		String[] toRemove = new String[5];
+		int k=0;
+		
+		for (Bot b : enemies.values()) {
+			if ((this.getTime()-b.scanTime) > 100) {
+				toRemove[k++] = b.name;
+			}
+		}
+		
+		for (int i = 0; i < k; i++) {
+			enemies.remove(toRemove[i]);
+			
+		}
 	}
 
 }

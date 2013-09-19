@@ -15,8 +15,6 @@ public class LinearTargetBot extends TeamBot {
 			double enemyY = getTarget().y;
 			double enemyHeading = getTarget().getHeading();
 			double enemyVelocity = getTarget().getVelocity();
-			 
-			 
 			double deltaTime = 0;
 			double battleFieldHeight = getBattleFieldHeight(), 
 			       battleFieldWidth = getBattleFieldWidth();

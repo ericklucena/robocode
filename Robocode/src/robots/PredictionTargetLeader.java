@@ -7,11 +7,10 @@ import java.awt.geom.Point2D;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import robots.TeamBot;
 import robots.util.RobotUtils;
 import robocode.Rules;
 import robocode.util.Utils;
-public class PredictionTargetBot extends TeamBot {
+public class PredictionTargetLeader extends TeamLeader {
 	
 	
 	Queue<Point2D> toDraw = new LinkedList<Point2D>();

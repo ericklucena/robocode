@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 import robocode.*;
-import robocode.util.Utils;
 import robots.util.*;
 
 // API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
@@ -14,14 +13,8 @@ import robots.util.*;
  * AimBot
  */
 
-public class TeamBot extends TeamRobot {
+public class TeamDroid extends TeamRobot implements Droid {
 	
-	private Bot scanned = null;
-	private long lastScannedTime;
-
-	public Bot getScanned() {
-		return scanned;
-	}
 
 	private Bot target = null;
 
@@ -59,10 +52,6 @@ public class TeamBot extends TeamRobot {
 			} catch (IOException e) {
 				// System.out.println("AWAY");
 				e.printStackTrace();
-			}
-
-			if ((getTime() - lastScannedTime) > 5) {
-				enemies.clear();
 			}
 
 			evaluate();
@@ -151,15 +140,7 @@ public class TeamBot extends TeamRobot {
 public void onMessageReceived(MessageEvent e){
 		
 		if(e.getMessage() instanceof LockMessage){
-			System.out.println("Lock");
-			LockMessage l = (LockMessage) e.getMessage();
-			
-			if(this.scanned!=null){
-				if(l.enemyName.equals(scanned.name) &&  l.name.compareTo(getName())<0){
-					this.scanned = null;
-				}
-			}
-			
+		
 		}else{
 			
 			Bot bot = (Bot) e.getMessage();
@@ -182,61 +163,7 @@ public void onMessageReceived(MessageEvent e){
 		}
 	}
 
-	public void onScannedRobot(ScannedRobotEvent e) {
-
-		if (isTeammate(e.getName())) {
-			return;
-		}
-
-		Bot enemy = (Bot) enemies.get(e.getName());
-
-		if ((enemy == null) && (this.scanned == null)) {
-			this.scanned = new Bot();
-			this.scanned.name = e.getName();
-			this.lastScannedTime = getTime();
-
-			try {
-				this.broadcastMessage(new LockMessage(this.getName(), scanned.name));
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-
-		//Calculo de posição do robô sob o scan
-		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians()) % (2 * Math.PI);
-		double x = getX() + Math.sin(absbearing_rad) * e.getDistance();
-		double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
-		Bot scanned = new Bot();
-		scanned.update(e, x, y);
-
-		enemies.put(scanned.getName(), scanned);
-		if(scanned!=null){
-			if(this.scanned.name.equals(e.getName())){
-
-				this.lastScannedTime = getTime();
-				//Calculo de movimentação do radar para manter o alvo sob scan constante
-				double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
-				double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
-				//double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
-				double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
-				bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
-				double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
-		
-				radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
-				setTurnRadarRightRadians(radarTurn);
-				
-				try {
-					this.broadcastMessage(scanned);
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-			}
-		}
-		
-		
-		
-	}
+	
 
 	void goTo(double x, double y) {
 		double dist = 20;
@@ -265,13 +192,6 @@ public void onMessageReceived(MessageEvent e){
 
 	// Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e) {
-		
-		if(e.getName().equals(scanned.getName())){
-			System.out.println("Yippee ki-yay, motherfucker!");
-			enemies.remove(e.getName());
-			scanned = null;
-		}
-		
 		if (!isTeammate(e.getName())) {
 			enemies.remove(e.getName());
 		} else {

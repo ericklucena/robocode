@@ -3,8 +3,6 @@ package robots.util;
 import java.awt.geom.Point2D;
 
 import robocode.BulletHitEvent;
-import robocode.util.Utils;
-import robots.util.*;
 
 public class Wave {
 	

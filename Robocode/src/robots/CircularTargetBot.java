@@ -1,4 +1,4 @@
-package robots;
+package robots;	
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -9,24 +9,26 @@ import java.util.Queue;
 
 import robots.TeamBot;
 import robots.util.RobotUtils;
+import robocode.Rules;
 import robocode.util.Utils;
 public class CircularTargetBot extends TeamBot {
 	
 	
 	Queue<Point2D> toDraw = new LinkedList<Point2D>();
-	
+	Point2D aim = null;
+	Point2D shot = null;
+	int shotCount = 0;
 	public void fire(){
-		
+			if(getTarget() == null) return;
 //			double angle = RobotUtils.absbearing(location(),getEnemy().location()) - getHeading();
 			// talvez levar em conta a energia a ser usada no tiro
 			double bulletPower = Math.min(1.5,getEnergy());
-			
-			double absoluteBearing = getHeadingRadians() + getScanned().getBearing();
-			double enemyX = getX() + getScanned().getDistance() * Math.sin(absoluteBearing);
-			double enemyY = getY() + getScanned().getDistance() * Math.cos(absoluteBearing);
-			double enemyHeading = getScanned().getHeading();
-			double enemyVelocity = getScanned().getVelocity();
-			double enemyTurningAngle = getScanned().turning;
+			double enemyX = getTarget().x;
+			double enemyY = getTarget().y;
+//			double enemyY = getY() + getTarget().getDistance() * Math.cos(absoluteBearing);
+			double enemyHeading = getTarget().getHeading();
+			double enemyVelocity = getTarget().getVelocity();
+			double enemyTurningAngle = getTarget().turning;
 			 
 			 
 			double deltaTime = 0;
@@ -52,32 +54,42 @@ public class CircularTargetBot extends TeamBot {
 			}
 			double theta = Utils.normalAbsoluteAngle(Math.atan2(
 			    predictedX - getX(), predictedY - getY()));
-			 
+			aim = new Point2D.Double(predictedX,predictedY);
+			
+			
 //			setTurnRadarRightRadians(
 //			    Utils.normalRelativeAngle(absoluteBearing - getRadarHeadingRadians()));
 			setTurnGunRightRadians(Utils.normalRelativeAngle(theta - getGunHeadingRadians()));
-		if(this.getGunHeat() <= 0){
+		if(this.getGunHeat() <= 0 && Math.abs(theta - getGunHeadingRadians()) < Rules.GUN_TURN_RATE_RADIANS){
 			setFire(bulletPower);
+			double realGunTurn = (theta > 0? Math.min(theta, Rules.GUN_TURN_RATE_RADIANS):Math.max(theta, - Rules.GUN_TURN_RATE_RADIANS));
+			double realAngle = getGunHeadingRadians() + realGunTurn;
+			double realX = getX() + (deltaTime) * (CIRCLE_RADIUS - 3.0 * bulletPower) * Math.sin(realAngle);
+			double realY = getY() + (deltaTime) * (CIRCLE_RADIUS - 3.0 * bulletPower) * Math.cos(realAngle);
+			shot = new Point2D.Double(realX,realY);
+			shotCount = 10;
 		}
 		else{
+			shotCount--;
+			shot = null;
 		}
 	}
 	private static final int CIRCLE_RADIUS = 30;
 	public void onPaint(Graphics2D g){
-		if(getScanned() != null){
+		if(getTarget() != null){
 			g.setStroke(new BasicStroke(2.0f));
 			g.setColor(new Color(0x00, 0xBB, 0xFF, 0x80));
-			g.drawOval( (int) (getScanned().x - CIRCLE_RADIUS), (int) (getScanned().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
+			g.drawOval( (int) (getTarget().x - CIRCLE_RADIUS), (int) (getTarget().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
 			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
 			double angle = getGunHeadingRadians();
 			g.drawOval( (int) (getX() - CIRCLE_RADIUS), (int) (getY() - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
-			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getScanned().x + Math.sin(angle)*1000), (int)(getScanned().y + Math.cos(angle)*1000));
+			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getTarget().x + Math.sin(angle)*1000), (int)(getTarget().y + Math.cos(angle)*1000));
 			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));
 			
 		}
 		
 		if(!toDraw.isEmpty()){
-			BasicStroke stroke = new BasicStroke(4.0f);
+			BasicStroke stroke = new BasicStroke(2.0f);
 			g.setStroke(stroke);
 			Point2D p = toDraw.element();
 			
@@ -88,6 +100,19 @@ public class CircularTargetBot extends TeamBot {
 				p = p2;
 				toDraw.remove();
 			}
+		}
+		if(aim != null){
+			g.setStroke(new BasicStroke(2.0f));
+			g.setColor(new Color(0xFF, 0x00, 0x00, 0xDD));
+			g.drawOval( (int) (aim.getX() - CIRCLE_RADIUS+2), (int) (aim.getY() - CIRCLE_RADIUS+2), CIRCLE_RADIUS*2-4, CIRCLE_RADIUS*2-4);
+			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
+		}
+
+		if(shot != null){
+			g.setStroke(new BasicStroke(2.0f));
+			g.setColor(new Color(0xFF, 0xBB, 0x00, 0xDD*shotCount/10));
+			g.drawOval( (int) (aim.getX() - CIRCLE_RADIUS+2), (int) (aim.getY() - CIRCLE_RADIUS+2), CIRCLE_RADIUS*2-4, CIRCLE_RADIUS*2-4);
+			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
 		}
 	}
 

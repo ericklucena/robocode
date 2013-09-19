@@ -19,9 +19,7 @@ public class AntiGravityBot extends AdvancedRobot
 	double midpointstrength = 0;	//The strength of the gravity point in the middle of the field
 	int midpointcount = 0;			//Number of turns since that strength was changed.
 	
-	private 
-	
-	static Point2D.Double[] wallPoints = new Point2D.Double[5];
+	private static Point2D.Double[] wallPoints = new Point2D.Double[5];
 		
 		
 	public void run() {
@@ -41,13 +39,17 @@ public class AntiGravityBot extends AdvancedRobot
 	    do {
 
 	        // Turn the radar if we have no more turn, starts it if it stops and at the start of round
-	        if ( getRadarTurnRemaining() == 0.0 )
+	        if ( getRadarTurnRemaining() == 0.0 ){
 	            setTurnRadarRightRadians( Double.POSITIVE_INFINITY );
+	        }
 	        antiGravMove();
+	        fire();
 	        execute();
 	    } while ( true );
 	 
 
+	}
+	public void fire(){
 	}
 	 
 	public void onScannedRobot(ScannedRobotEvent e) {
@@ -61,7 +63,7 @@ public class AntiGravityBot extends AdvancedRobot
 		}
 		
 		enemies[i] = new Bot();
-		updateEnemy(enemies[i], e);		
+		updateEnemy(enemies[i], e);
 	}
 	
 	void antiGravMove() {
@@ -71,19 +73,14 @@ public class AntiGravityBot extends AdvancedRobot
 	    double ang;
 	    GravPoint p;
 	    	    
-		for (int i=0;i<5;i++){
-			if(enemies[i]!= null){
-				Bot e = enemies[i];
-				if (e.alive) {
-					p = new GravPoint(e.location() , -1000);
+		for (Bot b : enemies){
+					p = new GravPoint(b.location() , -1000);
 			        force = p.power/Math.pow(RobotUtils.getRange(new Point2D.Double(getX(), getY()) ,p.location),2);
 			        //Find the bearing from the point to us
 			        ang = RobotUtils.normaliseBearing(Math.PI/2 - Math.atan2(getY() - p.location.getY(), getX() - p.location.getX())); 
 			        //Add the components of this force to the total force in their respective directions
 			        xforce += Math.sin(ang) * force;
 			        yforce += Math.cos(ang) * force;
-				}
-			}
 	    }
 	    
 

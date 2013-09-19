@@ -99,9 +99,9 @@ public class PredictionTargetBot extends TeamBot {
 		if(this.getGunHeat() <= 0 && Math.abs(angles[escolhido] - getGunHeadingRadians()) < Rules.GUN_TURN_RATE_RADIANS){
 			setFire(bulletPower);
 			double realGunTurn = (angles[escolhido] > 0? Math.min(angles[escolhido], Rules.GUN_TURN_RATE_RADIANS):Math.max(distances[escolhido], - Rules.GUN_TURN_RATE_RADIANS));
-			double realAngle = getGunHeadingRadians() + realGunTurn;
-			double realX = getX() + distances[escolhido] * Math.sin(realAngle);
-			double realY = getY() + distances[escolhido] * Math.cos(realAngle);
+//			double realAngle = getGunHeadingRadians() + realGunTurn;
+			double realX = getX() + distances[escolhido] * Math.sin(angles[escolhido]);
+			double realY = getY() + distances[escolhido] * Math.cos(angles[escolhido]);
 			shot = new Point2D.Double(realX,realY);
 			shotCount = 30;
 		}
@@ -114,15 +114,10 @@ public class PredictionTargetBot extends TeamBot {
 	public void onPaint(Graphics2D g){
 		BasicStroke stroke = new BasicStroke(2.0f);
 		g.setStroke(stroke);
-//		if(getTarget() != null){
-//			g.setColor(new Color(0x00, 0xBB, 0xFF, 0x80));
-//			g.drawOval( (int) (getTarget().x - CIRCLE_RADIUS), (int) (getTarget().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
-//			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
-//			double angle = getGunHeadingRadians();
-//			g.drawOval( (int) (getX() - CIRCLE_RADIUS), (int) (getY() - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
-//			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getX() + Math.sin(angle)*1000), (int)(getY() + Math.cos(angle)*1000));
-//			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));	
-//		}
+			double angle = getGunHeadingRadians();
+			g.drawOval( (int) (getX() - CIRCLE_RADIUS), (int) (getY() - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
+			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getX() + Math.sin(angle)*1000), (int)(getY() + Math.cos(angle)*1000));
+			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));
 		
 		if(!toDraw.isEmpty()){
 			Point2D p = toDraw.element();

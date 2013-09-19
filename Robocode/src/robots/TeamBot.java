@@ -281,9 +281,6 @@ public class TeamBot extends TeamRobot {
 
 	// Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e) {
-
-		
-
 		if (!isTeammate(e.getName())) {
 			enemies.remove(e.getName());
 			if (e.getName().equals(scanned.getName())) {

@@ -334,7 +334,7 @@ public class TeamBot extends TeamRobot {
 
 		if (scanned != null && e.getName().equals(scanned.getName())) {
 			System.out.println("Yippee ki-yay, motherfucker!");
-			enemies.remove(e.getName());
+//			enemies.remove(e.getName());
 			scanned = null;
 		}
 

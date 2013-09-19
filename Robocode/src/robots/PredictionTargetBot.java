@@ -10,6 +10,8 @@ import java.util.Queue;
 import robots.TeamBot;
 import robots.util.Bot;
 import robots.util.RobotUtils;
+import robocode.BulletHitEvent;
+import robocode.BulletMissedEvent;
 import robocode.Rules;
 import robocode.util.Utils;
 public class PredictionTargetBot extends TeamBot {
@@ -19,6 +21,7 @@ public class PredictionTargetBot extends TeamBot {
 	Point2D aim = null;
 	Point2D shot = null;
 	int shotCount = 0;
+	
 	public void fire(){
 //			if(getTarget() == null) 
 //				{
@@ -32,6 +35,7 @@ public class PredictionTargetBot extends TeamBot {
 			double bulletPower = Math.min(1.5,getEnergy());
 			int i = 0;
 			for(Bot b : enemies.values()){
+				toDraw.add(new Point2D.Double(0, 0));
 				double enemyX = b.x;
 				double enemyY = b.y;
 				double enemyHeading = b.getHeading();
@@ -44,6 +48,7 @@ public class PredictionTargetBot extends TeamBot {
 				double predictedX = enemyX, predictedY = enemyY;
 				while((++deltaTime) * (20.0 - 3.0 * bulletPower) < 
 				      RobotUtils.getRange(location(),new Point2D.Double(predictedX,predictedY))){
+					bulletPower = Math.min(3 - ((RobotUtils.getRange(location(),new Point2D.Double(predictedX,predictedY))-100)/250  ),getEnergy());
 					toDraw.add(new Point2D.Double(predictedX, predictedY));
 					predictedX += Math.sin(enemyHeading) * enemyVelocity;	
 					predictedY += Math.cos(enemyHeading) * enemyVelocity;
@@ -109,24 +114,29 @@ public class PredictionTargetBot extends TeamBot {
 	public void onPaint(Graphics2D g){
 		BasicStroke stroke = new BasicStroke(2.0f);
 		g.setStroke(stroke);
-		if(getTarget() != null){
-			g.setColor(new Color(0x00, 0xBB, 0xFF, 0x80));
-			g.drawOval( (int) (getTarget().x - CIRCLE_RADIUS), (int) (getTarget().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
-			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
-			double angle = getGunHeadingRadians();
-			g.drawOval( (int) (getX() - CIRCLE_RADIUS), (int) (getY() - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
-			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getX() + Math.sin(angle)*1000), (int)(getY() + Math.cos(angle)*1000));
-			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));	
-		}
+//		if(getTarget() != null){
+//			g.setColor(new Color(0x00, 0xBB, 0xFF, 0x80));
+//			g.drawOval( (int) (getTarget().x - CIRCLE_RADIUS), (int) (getTarget().y - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
+//			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
+//			double angle = getGunHeadingRadians();
+//			g.drawOval( (int) (getX() - CIRCLE_RADIUS), (int) (getY() - CIRCLE_RADIUS), CIRCLE_RADIUS*2, CIRCLE_RADIUS*2);
+//			g.drawLine((int) (getX() + Math.sin(angle)*CIRCLE_RADIUS), (int)(getY() + Math.cos(angle)*CIRCLE_RADIUS), (int)(getX() + Math.sin(angle)*1000), (int)(getY() + Math.cos(angle)*1000));
+//			g.setColor(new Color(0xFF, 0x00, 0x00, 0x80));	
+//		}
 		
 		if(!toDraw.isEmpty()){
 			Point2D p = toDraw.element();
+			boolean reset = true;
 			while(!toDraw.isEmpty()){
+				
 				g.setColor(new Color(0x00, 0xBB, 0x55, 0x80));
 				Point2D p2 = toDraw.element();
+				if(p2.getX() < 0.1 || p.getX() < 0.1) reset = true;
+				if(!reset)
 				g.drawLine((int)p.getX(), (int)p.getY(), (int)p2.getX(), (int)p2.getY());
 				p = p2;
 				toDraw.remove();
+				reset = false;
 			}
 		}
 		if(aim != null){
@@ -143,5 +153,14 @@ public class PredictionTargetBot extends TeamBot {
 			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
 		}
 	}
+	@Override
+	public void onBulletHit(BulletHitEvent event) {
+		
+	}
+	@Override
+	public void onBulletMissed(BulletMissedEvent event) {
+		
+	}
+	
 
 }

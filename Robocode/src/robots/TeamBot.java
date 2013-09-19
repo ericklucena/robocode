@@ -1,5 +1,6 @@
 package robots;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.Hashtable;
@@ -47,6 +48,8 @@ public class TeamBot extends TeamRobot {
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
+		setBodyColor(Color.RED);
+		
 		safePoint = new Point2D.Double(getBattleFieldWidth()/2, getBattleFieldHeight()/2); 
 		enemies = new Hashtable<String, Bot>();
 		friends = new Hashtable<String, Bot>();
@@ -184,6 +187,7 @@ public void onMessageReceived(MessageEvent e){
 		}else{
 			
 			Bot bot = (Bot) e.getMessage();
+			bot.updateDistance(this.getX(), this.getY());
 			
 			if(this.isTeammate(bot.getName())){
 				if(bot.alive){

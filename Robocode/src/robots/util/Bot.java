@@ -43,6 +43,10 @@ public class Bot implements Serializable {
 		this.y = y;
 	}
 	
+	public void updateDistance(double x, double y) {
+		this.distance = RobotUtils.getRange(new Point2D.Double(this.x, this.y), new Point2D.Double(x, y));
+	}
+	
 	
 
 	public Bot(String name, double bearing, double distance, double energy,

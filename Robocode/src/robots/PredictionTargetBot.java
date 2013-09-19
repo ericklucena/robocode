@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import robots.TeamBot;
+import robots.util.Bot;
 import robots.util.RobotUtils;
 import robocode.Rules;
 import robocode.util.Utils;
@@ -19,67 +20,83 @@ public class PredictionTargetBot extends TeamBot {
 	Point2D shot = null;
 	int shotCount = 0;
 	public void fire(){
-			if(getTarget() == null) 
-				{
-				System.out.println("EPA");
-				return;
-				}
-//			double angle = RobotUtils.absbearing(location(),getEnemy().location()) - getHeading();
-			// talvez levar em conta a energia a ser usada no tiro
-			double bulletPower = Math.min(3,getEnergy());
+//			if(getTarget() == null) 
+//				{
+//				System.out.println("EPA");
+//				return;
+//				}
+		if(enemies.size() == 0 ) return;
+			double[] angles = new double[enemies.size()];
+			double[] distances = new double[enemies.size()];
 			
-			double enemyX = getTarget().x;
-			double enemyY = getTarget().y;
-			double enemyHeading = getTarget().getHeading();
-			double enemyVelocity = getTarget().getVelocity();
-			double enemyTurningAngle = getTarget().turning;
-			double enemyAcceleration = getTarget().acceleration;
-			 
-			double deltaTime = 0;
-			double battleFieldHeight = getBattleFieldHeight(), 
-			       battleFieldWidth = getBattleFieldWidth();
-			double predictedX = enemyX, predictedY = enemyY;
-			while((++deltaTime) * (20.0 - 3.0 * bulletPower) < 
-			      RobotUtils.getRange(location(),new Point2D.Double(predictedX,predictedY))){
-				toDraw.add(new Point2D.Double(predictedX, predictedY));
-				predictedX += Math.sin(enemyHeading) * enemyVelocity;	
-				predictedY += Math.cos(enemyHeading) * enemyVelocity;
-				enemyHeading += enemyTurningAngle;
-				if(enemyAcceleration > 0)
-					enemyVelocity = Math.min(8.0 , enemyVelocity + enemyAcceleration);
-				else{
-					//tenso
-					if(enemyVelocity < 0){
-						enemyAcceleration = Math.min(-1.0, enemyAcceleration);
-						enemyVelocity = Math.max(-8.0 , enemyVelocity + enemyAcceleration);
-					}else{
-						enemyVelocity += enemyAcceleration;
-					}
+			double bulletPower = Math.min(1.5,getEnergy());
+			int i = 0;
+			for(Bot b : enemies.values()){
+				double enemyX = b.x;
+				double enemyY = b.y;
+				double enemyHeading = b.getHeading();
+				double enemyVelocity = b.getVelocity();
+				double enemyTurningAngle = b.turning;
+				double enemyAcceleration = b.acceleration;
+				double deltaTime = 0;
+				double battleFieldHeight = getBattleFieldHeight(), 
+				       battleFieldWidth = getBattleFieldWidth();
+				double predictedX = enemyX, predictedY = enemyY;
+				while((++deltaTime) * (20.0 - 3.0 * bulletPower) < 
+				      RobotUtils.getRange(location(),new Point2D.Double(predictedX,predictedY))){
+					toDraw.add(new Point2D.Double(predictedX, predictedY));
+					predictedX += Math.sin(enemyHeading) * enemyVelocity;	
+					predictedY += Math.cos(enemyHeading) * enemyVelocity;
 					
+					enemyHeading += enemyTurningAngle;
+					if(enemyAcceleration > 0)
+						enemyVelocity = Math.min(8.0 , enemyVelocity + enemyAcceleration);
+					else{
+						//tenso
+						if(enemyVelocity < 0){
+							enemyAcceleration = Math.min(-1.0, enemyAcceleration);
+							enemyVelocity = Math.max(-8.0 , enemyVelocity + enemyAcceleration);
+						}else{
+							enemyVelocity += enemyAcceleration;
+						}
+						
+					}
+					if(	predictedX < 18.0 
+						|| predictedY < 18.0
+						|| predictedX > battleFieldWidth - 18.0
+						|| predictedY > battleFieldHeight - 18.0){
+						predictedX = Math.min(Math.max(18.0, predictedX), 
+				                    battleFieldWidth - 18.0);	
+						predictedY = Math.min(Math.max(18.0, predictedY), 
+				                    battleFieldHeight - 18.0);
+						break;
+					}
 				}
-				if(	predictedX < 18.0 
-					|| predictedY < 18.0
-					|| predictedX > battleFieldWidth - 18.0
-					|| predictedY > battleFieldHeight - 18.0){
-					predictedX = Math.min(Math.max(18.0, predictedX), 
-			                    battleFieldWidth - 18.0);	
-					predictedY = Math.min(Math.max(18.0, predictedY), 
-			                    battleFieldHeight - 18.0);
-					break;
-				}
+				
+				distances[i] =  RobotUtils.getRange(new Point2D.Double(predictedX,predictedY), location()); 
+				angles[i++] = Utils.normalAbsoluteAngle(Math.atan2(
+				    predictedX - getX(), predictedY - getY()));
+				
 			}
-			double theta = Utils.normalAbsoluteAngle(Math.atan2(
-			    predictedX - getX(), predictedY - getY()));
-			aim = new Point2D.Double(predictedX,predictedY);
+			
+			
+			
+//			aim = new Point2D.Double(predictedX,predictedY);
 //			setTurnRadarRightRadians(
 //			    Utils.normalRelativeAngle(absoluteBearing - getRadarHeadingRadians()));
-			setTurnGunRightRadians(Utils.normalRelativeAngle(theta - getGunHeadingRadians()));
-		if(this.getGunHeat() <= 0 && Math.abs(theta - getGunHeadingRadians()) < Rules.GUN_TURN_RATE_RADIANS){
+			int escolhido = 0;
+			for(int j = 0; j < enemies.size(); j++){
+				if(distances[escolhido] > distances[j]){
+					escolhido = j;
+				}
+			}
+			setTurnGunRightRadians(Utils.normalRelativeAngle(angles[escolhido] - getGunHeadingRadians()));
+		if(this.getGunHeat() <= 0 && Math.abs(angles[escolhido] - getGunHeadingRadians()) < Rules.GUN_TURN_RATE_RADIANS){
 			setFire(bulletPower);
-			double realGunTurn = (theta > 0? Math.min(theta, Rules.GUN_TURN_RATE_RADIANS):Math.max(theta, - Rules.GUN_TURN_RATE_RADIANS));
+			double realGunTurn = (angles[escolhido] > 0? Math.min(angles[escolhido], Rules.GUN_TURN_RATE_RADIANS):Math.max(distances[escolhido], - Rules.GUN_TURN_RATE_RADIANS));
 			double realAngle = getGunHeadingRadians() + realGunTurn;
-			double realX = getX() + (deltaTime) * (CIRCLE_RADIUS - 3.0 * bulletPower) * Math.sin(realAngle);
-			double realY = getY() + (deltaTime) * (CIRCLE_RADIUS - 3.0 * bulletPower) * Math.cos(realAngle);
+			double realX = getX() + distances[escolhido] * Math.sin(realAngle);
+			double realY = getY() + distances[escolhido] * Math.cos(realAngle);
 			shot = new Point2D.Double(realX,realY);
 			shotCount = 10;
 		}

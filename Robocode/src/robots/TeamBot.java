@@ -16,10 +16,10 @@ import robots.util.*;
  */
 
 public class TeamBot extends TeamRobot {
-	
+
 	private Bot scanned = null;
 	private long lastScannedTime;
-	Point2D safePoint; 
+	Point2D safePoint;
 
 	public Bot getScanned() {
 		return scanned;
@@ -47,7 +47,8 @@ public class TeamBot extends TeamRobot {
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
-		safePoint = new Point2D.Double(getBattleFieldWidth()/2, getBattleFieldHeight()/2); 
+		safePoint = new Point2D.Double(getBattleFieldWidth() / 2,
+				getBattleFieldHeight() / 2);
 		enemies = new Hashtable<String, Bot>();
 		friends = new Hashtable<String, Bot>();
 
@@ -114,24 +115,28 @@ public class TeamBot extends TeamRobot {
 			xforce += Math.sin(ang) * force;
 			yforce += Math.cos(ang) * force;
 		}
-		
-		
-		//Descobre um ponto de paz e aplica uma gravidade positiva, para não deixar o robô parado
 
-		if(getTime()%20 == 0){
+		// Descobre um ponto de paz e aplica uma gravidade positiva, para não
+		// deixar o robô parado
+
+		if (getTime() % 35 == 0) {
 			safePoint = getSafePoint(5);
 		}
-		
+
 		p = new GravPoint(safePoint, 1000);
 		System.out.println(safePoint);
-		force = p.power	/ Math.pow(RobotUtils.getRange(new Point2D.Double(getX(), getY()), p.location), 2);
-		ang = RobotUtils.normaliseBearing(Math.PI/2	- Math.atan2(getY() - p.location.getY(), getX()	- p.location.getX()));
+		force = p.power
+				/ Math.pow(RobotUtils.getRange(new Point2D.Double(getX(),
+						getY()), p.location), 2);
+		ang = RobotUtils.normaliseBearing(Math.PI
+				/ 2
+				- Math.atan2(getY() - p.location.getY(),
+						getX() - p.location.getX()));
 
 		xforce += Math.sin(ang) * force;
 		yforce += Math.cos(ang) * force;
-		
-		//Fim clear point
-		
+
+		// Fim clear point
 
 		// TODO marcando para olhar depois e tweakar.
 		// if(target != null){
@@ -169,34 +174,37 @@ public class TeamBot extends TeamRobot {
 		goTo(getX() - xforce, getY() - yforce);
 	}
 
-public void onMessageReceived(MessageEvent e){
-		
-		if(e.getMessage() instanceof LockMessage){
+	public void onMessageReceived(MessageEvent e) {
+
+		if (e.getMessage() instanceof LockMessage) {
 			System.out.println("Lock");
 			LockMessage l = (LockMessage) e.getMessage();
-			
-			if(this.scanned!=null){
-				if(l.enemyName.equals(scanned.name) &&  l.name.compareTo(getName())<0){
-					this.scanned = null;
+
+			if (this.scanned != null) {
+				if (enemies.size() >= (friends.size() + 1)) {
+					if (l.enemyName.equals(scanned.name)
+							&& l.name.compareTo(getName()) < 0) {
+						this.scanned = null;
+					}
 				}
 			}
-			
-		}else{
-			
+
+		} else {
+
 			Bot bot = (Bot) e.getMessage();
-			
-			if(this.isTeammate(bot.getName())){
-				if(bot.alive){
+
+			if (this.isTeammate(bot.getName())) {
+				if (bot.alive) {
 					friends.put(bot.name, bot);
-				}else{
+				} else {
 					friends.remove(bot.name);
 				}
-				
-			}else{
-				if(bot.alive){
+
+			} else {
+				if (bot.alive) {
 					enemies.put(bot.name, bot);
-				}else{
-//					System.out.println(bot);
+				} else {
+					// System.out.println(bot);
 					enemies.remove(bot.name);
 				}
 			}
@@ -217,40 +225,52 @@ public void onMessageReceived(MessageEvent e){
 			this.lastScannedTime = getTime();
 
 			try {
-				this.broadcastMessage(new LockMessage(this.getName(), scanned.name));
+				this.broadcastMessage(new LockMessage(this.getName(),
+						scanned.name));
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		}
 
-		//Calculo de posição do robô sob o scan
-		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians()) % (2 * Math.PI);
+		// Calculo de posição do robô sob o scan
+		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians())
+				% (2 * Math.PI);
 		double x = getX() + Math.sin(absbearing_rad) * e.getDistance();
 		double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
 		Bot scanned = new Bot();
 		scanned.update(e, x, y);
 
 		enemies.put(scanned.getName(), scanned);
-		if(scanned!=null){
-			if(this.scanned.name.equals(e.getName())){
+		if (scanned != null) {
+			System.out.println("111");
+			if (this.scanned != null && this.scanned.name.equals(e.getName())) {
+				System.out.println("222");
 				this.lastScannedTime = getTime();
-				//Calculo de movimentação do radar para manter o alvo sob scan constante
-				double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
-				double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
-				//double gunTurn = Utils.normalRelativeAngle( angleToEnemy - getGunHeadingRadians() );
-				double bodyTurn = (Math.PI/2) + getGunHeadingRadians();
-				bodyTurn = Utils.normalRelativeAngle(bodyTurn -getHeadingRadians());
-				double extraTurn = Math.min( Math.atan( 36.0 / e.getDistance() ), Rules.RADAR_TURN_RATE_RADIANS );
-		
+				// Calculo de movimentação do radar para manter o alvo sob scan
+				// constante
+				double angleToEnemy = getHeadingRadians()
+						+ e.getBearingRadians();
+				double radarTurn = Utils.normalRelativeAngle(angleToEnemy
+						- getRadarHeadingRadians());
+				// double gunTurn = Utils.normalRelativeAngle( angleToEnemy -
+				// getGunHeadingRadians() );
+				double bodyTurn = (Math.PI / 2) + getGunHeadingRadians();
+				bodyTurn = Utils.normalRelativeAngle(bodyTurn
+						- getHeadingRadians());
+				double extraTurn = Math.min(Math.atan(36.0 / e.getDistance()),
+						Rules.RADAR_TURN_RATE_RADIANS);
+
 				radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
 				setTurnRadarRightRadians(radarTurn);
-				
+
 				try {
 					this.broadcastMessage(scanned);
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
+			} else {
+				System.out.println("333");
 			}
 		}
 	}
@@ -282,13 +302,13 @@ public void onMessageReceived(MessageEvent e){
 
 	// Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e) {
-		
-		if(e.getName().equals(scanned.getName())){
+
+		if (scanned != null && e.getName().equals(scanned.getName())) {
 			System.out.println("Yippee ki-yay, motherfucker!");
 			enemies.remove(e.getName());
 			scanned = null;
 		}
-		
+
 		if (!isTeammate(e.getName())) {
 			enemies.remove(e.getName());
 		} else {
@@ -347,80 +367,81 @@ public void onMessageReceived(MessageEvent e){
 				this.getHeading(), this.getVelocity(), this.getX(),
 				this.getY(), this.getTime(), false, false);
 	}
-	
 
 	float danoAmigo = 0;
 	float danoInimigo = 0;
-	
+
 	@Override
 	public void onHitByBullet(HitByBulletEvent event) {
-		if(isTeammate(event.getBullet().getName())){
-			danoAmigo += event.getPower()> 1? event.getPower()*4 + 2*(event.getPower() - 1) : event.getPower() * 4;
-		}else{
-			danoInimigo += event.getPower()> 1? event.getPower()*4 + 2*(event.getPower() - 1) : event.getPower() * 4;
+		if (isTeammate(event.getBullet().getName())) {
+			danoAmigo += event.getPower() > 1 ? event.getPower() * 4 + 2
+					* (event.getPower() - 1) : event.getPower() * 4;
+		} else {
+			danoInimigo += event.getPower() > 1 ? event.getPower() * 4 + 2
+					* (event.getPower() - 1) : event.getPower() * 4;
 		}
 		// TODO Auto-generated method stub
 		super.onHitByBullet(event);
 	}
-	
-	public Point2D getSafePoint(int gridSize){
-		
+
+	public Point2D getSafePoint(int gridSize) {
+
 		int[][] grid = new int[gridSize][gridSize];
-		
-		Point2D[] bestPoints = new Point2D.Double[gridSize*gridSize];
-		
+
+		Point2D[] bestPoints = new Point2D.Double[gridSize * gridSize];
+
 		int height = (int) this.getBattleFieldHeight();
 		int width = (int) this.getBattleFieldWidth();
-		int hIncrement = height/gridSize;
-		int wIncrement = width/gridSize;
-		
-				
-		for(int w=wIncrement, i=0 ; w<=width; w+=wIncrement, i++){
-			for(int h=hIncrement, j=0 ; h<=height; h+=hIncrement, j++){
+		int hIncrement = height / gridSize;
+		int wIncrement = width / gridSize;
+
+		for (int w = wIncrement, i = 0; w <= width; w += wIncrement, i++) {
+			for (int h = hIncrement, j = 0; h <= height; h += hIncrement, j++) {
 				for (Bot b : enemies.values()) {
-					if( (b.x < w) && (b.x > w-wIncrement) && (b.y < h) && (b.y > h-hIncrement)){
-						grid[i][j]++;						
+					if ((b.x < w) && (b.x > w - wIncrement) && (b.y < h)
+							&& (b.y > h - hIncrement)) {
+						grid[i][j]++;
 					}
 				}
 			}
 		}
-		
-		int min=5000;
-		int k=0;
-		
-		int x=0, y=0;
-		
+
+		int min = 5000;
+		int k = 0;
+
+		int x = 0, y = 0;
+
 		for (int i = 0; i < grid.length; i++) {
 			for (int j = 0; j < grid[i].length; j++) {
-				if(grid[i][j]<min){
-					x=i;
-					y=j;
+				if (grid[i][j] < min) {
+					x = i;
+					y = j;
 					min = grid[i][j];
 				}
-			}			
+			}
 		}
-		
+
 		for (int i = 0; i < grid.length; i++) {
 			for (int j = 0; j < grid[i].length; j++) {
-				if(grid[i][j]==min){
+				if (grid[i][j] == min) {
 					bestPoints[k++] = new Point2D.Double(i, j);
 				}
-			}			
+			}
 		}
-		
+
 		Random r = new Random();
-		
+
 		Point2D p = bestPoints[r.nextInt(k)];
-		
+
 		x = (int) p.getX();
 		y = (int) p.getY();
-		
+
 		x *= wIncrement;
 		y *= hIncrement;
-		
+
 		x += wIncrement;
 		y += hIncrement;
-		
+
 		return new Point2D.Double(x, y);
 
 	}

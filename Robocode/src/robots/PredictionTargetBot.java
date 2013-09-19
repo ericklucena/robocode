@@ -98,7 +98,7 @@ public class PredictionTargetBot extends TeamBot {
 			setTurnGunRightRadians(Utils.normalRelativeAngle(angles[escolhido] - getGunHeadingRadians()));
 		if(this.getGunHeat() <= 0 && Math.abs(angles[escolhido] - getGunHeadingRadians()) < Rules.GUN_TURN_RATE_RADIANS){
 			setFire(bulletPower);
-			double realGunTurn = (angles[escolhido] > 0? Math.min(angles[escolhido], Rules.GUN_TURN_RATE_RADIANS):Math.max(distances[escolhido], - Rules.GUN_TURN_RATE_RADIANS));
+//			double realGunTurn = (angles[escolhido] > 0? Math.min(angles[escolhido], Rules.GUN_TURN_RATE_RADIANS):Math.max(distances[escolhido], - Rules.GUN_TURN_RATE_RADIANS));
 //			double realAngle = getGunHeadingRadians() + realGunTurn;
 			double realX = getX() + distances[escolhido] * Math.sin(angles[escolhido]);
 			double realY = getY() + distances[escolhido] * Math.cos(angles[escolhido]);

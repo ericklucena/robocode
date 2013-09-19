@@ -72,7 +72,7 @@ public void onMessageReceived(MessageEvent e){
 
 	
 
-	void goTo(double x, double y) {
+	public void goTo(double x, double y) {
 		double dist = 20;
 		double angle = Math.toDegrees(RobotUtils.absbearing(new Point2D.Double(
 				getX(), getY()), new Point2D.Double(x, y)));
@@ -80,7 +80,7 @@ public void onMessageReceived(MessageEvent e){
 		setAhead(dist * r);
 	}
 
-	int turnTo(double angle) {
+	public int turnTo(double angle) {
 		double ang;
 		int dir;
 		ang = RobotUtils.normaliseBearing(getHeading() - angle);

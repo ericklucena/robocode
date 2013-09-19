@@ -10,33 +10,44 @@ import robocode.*;
 import robocode.util.Utils;
 import robots.util.*;
 
-// API help : http://robocode.sourceforge.net/docs/robocode/robocode/Robot.html
-
 /**
- * AimBot
+ * TeamBot
+ * Robô padrão, contendo lógica de scan e movimentação.
+ * Deve ser extendido por robôs com capacidade de mira. 
  */
 
 public class TeamBot extends TeamRobot {
 
 	private Bot scanned = null;
 	private Bot target = null;
-	Point2D safePoint;
+	private Point2D safePoint;
 	public Hashtable<String, Bot> enemies;
 	public Hashtable<String, Bot> friends;
 
+	private int eNumber;
+	private int fNumber;
+
+	float danoAmigo = 0;
+
+	float danoInimigo = 0;
+
 	public void run() {
-	
+
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
 		setBodyColor(Color.RED);
-	
-		safePoint = new Point2D.Double(getBattleFieldWidth() / 2, getBattleFieldHeight() / 2);
+
+		eNumber = 5;
+		fNumber = 5;
+
+		safePoint = new Point2D.Double(getBattleFieldWidth() / 2,
+				getBattleFieldHeight() / 2);
 		enemies = new Hashtable<String, Bot>();
 		friends = new Hashtable<String, Bot>();
-	
+
 		do {
-	
+
 			// Turn the radar if we have no more turn, starts it if it stops and
 			// at the start of round
 			if (getRadarTurnRemaining() == 0.0)
@@ -47,14 +58,14 @@ public class TeamBot extends TeamRobot {
 				// System.out.println("AWAY");
 				e.printStackTrace();
 			}
-	
+
 			cleanHashtable();
 			evaluate();
 			antiGravMove();
 			fire();
 			execute();
 		} while (true);
-	
+
 	}
 
 	public Bot getScanned() {
@@ -69,7 +80,7 @@ public class TeamBot extends TeamRobot {
 		this.target = enemy;
 	}
 
-	void antiGravMove() {
+	public void antiGravMove() {
 		double xforce = 0;
 		double yforce = 0;
 		double force;
@@ -162,7 +173,7 @@ public class TeamBot extends TeamRobot {
 				}
 			}
 
-		}else{
+		} else {
 
 			Bot bot = (Bot) e.getMessage();
 			bot.updateDistance(this.getX(), this.getY());
@@ -191,64 +202,92 @@ public class TeamBot extends TeamRobot {
 			return;
 		}
 
-		Bot enemy = (Bot) enemies.get(e.getName());
-		
-		
-		//Se não está na tabela e não está mirando em ninguém.
-		if ((enemy == null) && (this.scanned == null)) {
-			this.scanned = new Bot();
-			this.scanned.name = e.getName();
+		if (eNumber > fNumber) {
+			
+			setTurnRadarRightRadians(Double.POSITIVE_INFINITY);
+			
+			double absbearing_rad = (getHeadingRadians() + e.getBearingRadians()) % (2 * Math.PI);
+			double x = getX() + Math.sin(absbearing_rad) * e.getDistance();
+			double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
 
+			Bot scanned = new Bot();
+			scanned.update(e, x, y);
+
+			enemies.put(scanned.getName(), scanned);
+			
 			try {
-				this.broadcastMessage(new LockMessage(this.getName(),
-						scanned.name));
+				this.broadcastMessage(scanned);
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		}
+			
+		} else {
 
-		// Calculo de posição do robô sob o scan
-		// Mesmo que não seja o robô que ele precisa ler, guarda uma posição atualizada do robô lido.
-		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians()) % (2 * Math.PI);
-		double x = getX() + Math.sin(absbearing_rad) * e.getDistance();
-		double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
-		
-		Bot scanned = new Bot();
-		scanned.update(e, x, y);
+			Bot enemy = (Bot) enemies.get(e.getName());
 
-		enemies.put(scanned.getName(), scanned);
-		
-		try {
-			this.broadcastMessage(scanned);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		
-		// Se estou responsável por ler alguém
-		if (this.scanned != null) {
-			if (this.scanned.name.equals(e.getName())) {
-				this.scanned = scanned;
-				// Calculo de movimentação do radar para manter o alvo sob scan constante
-				double angleToEnemy = getHeadingRadians() + e.getBearingRadians();
-				double radarTurn = Utils.normalRelativeAngle(angleToEnemy - getRadarHeadingRadians());
-				double bodyTurn = (Math.PI / 2) + getGunHeadingRadians();
-				bodyTurn = Utils.normalRelativeAngle(bodyTurn - getHeadingRadians());
-				double extraTurn = Math.min(Math.atan(36.0 / e.getDistance()), Rules.RADAR_TURN_RATE_RADIANS);
-
-				radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
-				setTurnRadarRightRadians(radarTurn);
+			// Se não está na tabela e não está mirando em ninguém.
+			if ((enemy == null) && (this.scanned == null)) {
+				this.scanned = new Bot();
+				this.scanned.name = e.getName();
 
 				try {
-					this.broadcastMessage(this.scanned);
+					this.broadcastMessage(new LockMessage(this.getName(),
+							scanned.name));
 				} catch (IOException e1) {
+					// TODO Auto-generated catch block
 					e1.printStackTrace();
+				}
+			}
+
+			// Calculo de posição do robô sob o scan
+			// Mesmo que não seja o robô que ele precisa ler, guarda uma posição
+			// atualizada do robô lido.
+			double absbearing_rad = (getHeadingRadians() + e.getBearingRadians()) % (2 * Math.PI);
+			double x = getX() + Math.sin(absbearing_rad) * e.getDistance();
+			double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
+
+			Bot scanned = new Bot();
+			scanned.update(e, x, y);
+
+			enemies.put(scanned.getName(), scanned);
+
+			try {
+				this.broadcastMessage(scanned);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+
+			// Se estou responsável por ler alguém
+			if (this.scanned != null) {
+				if (this.scanned.name.equals(e.getName())) {
+					this.scanned = scanned;
+					// Calculo de movimentação do radar para manter o alvo sob
+					// scan constante
+					double angleToEnemy = getHeadingRadians()
+							+ e.getBearingRadians();
+					double radarTurn = Utils.normalRelativeAngle(angleToEnemy
+							- getRadarHeadingRadians());
+					double bodyTurn = (Math.PI / 2) + getGunHeadingRadians();
+					bodyTurn = Utils.normalRelativeAngle(bodyTurn
+							- getHeadingRadians());
+					double extraTurn = Math.min(
+							Math.atan(36.0 / e.getDistance()),
+							Rules.RADAR_TURN_RATE_RADIANS);
+
+					radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
+					setTurnRadarRightRadians(radarTurn);
+
+					try {
+						this.broadcastMessage(this.scanned);
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 		}
 	}
 
-	void goTo(double x, double y) {
+	public void goTo(double x, double y) {
 		double dist = 20;
 		double angle = Math.toDegrees(RobotUtils.absbearing(new Point2D.Double(
 				getX(), getY()), new Point2D.Double(x, y)));
@@ -256,7 +295,7 @@ public class TeamBot extends TeamRobot {
 		setAhead(dist * r);
 	}
 
-	int turnTo(double angle) {
+	public int turnTo(double angle) {
 		double ang;
 		int dir;
 		ang = RobotUtils.normaliseBearing(getHeading() - angle);
@@ -277,15 +316,17 @@ public class TeamBot extends TeamRobot {
 	public void onRobotDeath(RobotDeathEvent e) {
 
 		if (!isTeammate(e.getName())) {
+			eNumber--;
 			enemies.remove(e.getName());
 			if (e.getName().equals(scanned.getName())) {
 				System.out.println("Yippee ki-yay, motherfucker!");
 				scanned = null;
 			}
 		} else {
+			fNumber--;
 			friends.remove(e.getName());
 		}
-		
+
 	}
 
 	public void onDeath(DeathEvent de) {
@@ -340,9 +381,6 @@ public class TeamBot extends TeamRobot {
 				this.getY(), this.getTime(), false, false);
 	}
 
-	float danoAmigo = 0;
-	float danoInimigo = 0;
-
 	@Override
 	public void onHitByBullet(HitByBulletEvent event) {
 		if (isTeammate(event.getBullet().getName())) {
@@ -355,7 +393,11 @@ public class TeamBot extends TeamRobot {
 		// TODO Auto-generated method stub
 		super.onHitByBullet(event);
 	}
-
+	
+	
+	// Traça um grid no campo de batalha, procurando as áreas com menos robôs inimigos.
+	// As áreas com menor valor são separadas e se escolhe uma randômicamente.
+	// Atribuindo-se um valor gravitacional, fazemos o robô não ficar parado devito à alguma estabilidade espacial.
 	public Point2D getSafePoint(int gridSize) {
 
 		int[][] grid = new int[gridSize][gridSize];
@@ -417,22 +459,22 @@ public class TeamBot extends TeamRobot {
 		return new Point2D.Double(x, y);
 
 	}
-	
-	
-	//Verifica o tempo de cada robô na hashtable, eliminando os que não são atualizados a mais de 100 ticks 
+
+	// Verifica o tempo de cada robô na hashtable, eliminando os que não são
+	// atualizados a mais de 100 ticks
 	public void cleanHashtable() {
-		
+
 		String[] toRemove = new String[5];
-		int k=0;
-		
+		int k = 0;
+
 		for (Bot b : enemies.values()) {
-			if ((this.getTime()-b.scanTime) > 100) {
+			if ((this.getTime() - b.scanTime) > 100) {
 				toRemove[k++] = b.name;
 			}
 		}
-		
+
 		for (int i = 0; i < k; i++) {
-			enemies.remove(toRemove[i]);	
+			enemies.remove(toRemove[i]);
 		}
 	}
 

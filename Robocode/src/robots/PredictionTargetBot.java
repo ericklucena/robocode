@@ -98,11 +98,11 @@ public class PredictionTargetBot extends TeamBot {
 			double realX = getX() + distances[escolhido] * Math.sin(realAngle);
 			double realY = getY() + distances[escolhido] * Math.cos(realAngle);
 			shot = new Point2D.Double(realX,realY);
-			shotCount = 10;
+			shotCount = 30;
 		}
 		else{
 			shotCount--;
-			shot = null;
+//			shot = null;
 		}
 	}
 	private static final int CIRCLE_RADIUS = 30;
@@ -138,8 +138,8 @@ public class PredictionTargetBot extends TeamBot {
 
 		if(shot != null){
 			g.setStroke(new BasicStroke(2.0f));
-			g.setColor(new Color(0xFF, 0xBB, 0x00, 0xDD*shotCount/10));
-			g.drawOval( (int) (aim.getX() - CIRCLE_RADIUS+2), (int) (aim.getY() - CIRCLE_RADIUS+2), CIRCLE_RADIUS*2-4, CIRCLE_RADIUS*2-4);
+			g.setColor(new Color(0xFF, 0xBB, 0x00, 0xDD*shotCount/30));
+			g.drawOval( (int) (shot.getX() - CIRCLE_RADIUS+2), (int) (shot.getY() - CIRCLE_RADIUS+2), CIRCLE_RADIUS*2-4, CIRCLE_RADIUS*2-4);
 			g.setColor(new Color(0x00, 0xFF, 0x00, 0x80));
 		}
 	}

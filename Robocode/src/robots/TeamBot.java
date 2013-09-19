@@ -1,8 +1,11 @@
 package robots;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Random;
 
 import robocode.*;
@@ -37,8 +40,8 @@ public class TeamBot extends TeamRobot {
 		this.target = enemy;
 	}
 
-	public Hashtable<String, Bot> enemies;
-	public Hashtable<String, Bot> friends;
+	public Map<String, Bot> enemies;
+	public Map<String, Bot> friends;
 
 	boolean direction = false;
 
@@ -47,10 +50,13 @@ public class TeamBot extends TeamRobot {
 		setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
 		setAdjustRadarForRobotTurn(true);
+
+		setBodyColor(Color.RED);
+		
 		safePoint = new Point2D.Double(getBattleFieldWidth() / 2,
 				getBattleFieldHeight() / 2);
-		enemies = new Hashtable<String, Bot>();
-		friends = new Hashtable<String, Bot>();
+		enemies = new HashMap<String, Bot>();
+		friends = new HashMap<String, Bot>();
 
 		do {
 
@@ -65,7 +71,7 @@ public class TeamBot extends TeamRobot {
 				e.printStackTrace();
 			}
 
-			if ((getTime() - lastScannedTime) > 5) {
+			if ((getTime() - lastScannedTime) > 20) {
 				enemies.clear();
 			}
 
@@ -85,6 +91,7 @@ public class TeamBot extends TeamRobot {
 		GravPoint p;
 
 		for (Bot b : enemies.values()) {
+			System.out.println(b.name);
 			p = new GravPoint(b.location(), -500);
 			force = p.power
 					/ Math.pow(RobotUtils.getRange(new Point2D.Double(getX(),
@@ -193,20 +200,27 @@ public class TeamBot extends TeamRobot {
 
 			Bot bot = (Bot) e.getMessage();
 
+			bot.updateDistance(this.getX(), this.getY());
+			System.out.println("recebi " + bot);
 			if (this.isTeammate(bot.getName())) {
-				if (bot.alive) {
+				System.out.println("amigo");
+//				if (bot.alive) {
 					friends.put(bot.name, bot);
-				} else {
-					friends.remove(bot.name);
-				}
+//				} else {
+//					friends.remove(bot.name);
+//				}
 
 			} else {
-				if (bot.alive) {
+//				if (bot.alive) {
+					System.out.println("inimigo");
 					enemies.put(bot.name, bot);
-				} else {
-					// System.out.println(bot);
-					enemies.remove(bot.name);
-				}
+					for(Bot b : enemies.values()){
+						System.out.println("recebi e iterei " + b);
+					}
+//				} else {
+					 
+//					enemies.remove(bot.name);
+//				}
 			}
 		}
 	}
@@ -232,7 +246,7 @@ public class TeamBot extends TeamRobot {
 				e1.printStackTrace();
 			}
 		}
-
+		
 		// Calculo de posição do robô sob o scan
 		double absbearing_rad = (getHeadingRadians() + e.getBearingRadians())
 				% (2 * Math.PI);
@@ -240,38 +254,52 @@ public class TeamBot extends TeamRobot {
 		double y = getY() + Math.cos(absbearing_rad) * e.getDistance();
 		Bot scanned = new Bot();
 		scanned.update(e, x, y);
-
+		
 		enemies.put(scanned.getName(), scanned);
-		if (scanned != null) {
-			System.out.println("111");
-			if (this.scanned != null && this.scanned.name.equals(e.getName())) {
-				System.out.println("222");
-				this.lastScannedTime = getTime();
-				// Calculo de movimentação do radar para manter o alvo sob scan
-				// constante
-				double angleToEnemy = getHeadingRadians()
-						+ e.getBearingRadians();
-				double radarTurn = Utils.normalRelativeAngle(angleToEnemy
-						- getRadarHeadingRadians());
-				// double gunTurn = Utils.normalRelativeAngle( angleToEnemy -
-				// getGunHeadingRadians() );
-				double bodyTurn = (Math.PI / 2) + getGunHeadingRadians();
-				bodyTurn = Utils.normalRelativeAngle(bodyTurn
-						- getHeadingRadians());
-				double extraTurn = Math.min(Math.atan(36.0 / e.getDistance()),
-						Rules.RADAR_TURN_RATE_RADIANS);
+		try {
+			this.broadcastMessage(scanned);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		if (this.scanned != null) {
+		
+			if (this.scanned.name != null) {
+		
+				if (e != null){
+		
+					if (e.getName() != null){
+		
+						if( this.scanned.name.equals(e.getName())) {
+		
+					this.lastScannedTime = getTime();
+					// Calculo de movimentação do radar para manter o alvo sob
+					// scan
+					// constante
+					double angleToEnemy = getHeadingRadians()
+							+ e.getBearingRadians();
+					double radarTurn = Utils.normalRelativeAngle(angleToEnemy
+							- getRadarHeadingRadians());
+					// double gunTurn = Utils.normalRelativeAngle( angleToEnemy
+					// -
+					// getGunHeadingRadians() );
+					double bodyTurn = (Math.PI / 2) + getGunHeadingRadians();
+					bodyTurn = Utils.normalRelativeAngle(bodyTurn
+							- getHeadingRadians());
+					double extraTurn = Math.min(
+							Math.atan(36.0 / e.getDistance()),
+							Rules.RADAR_TURN_RATE_RADIANS);
 
-				radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
-				setTurnRadarRightRadians(radarTurn);
+					radarTurn += (radarTurn < 0 ? -extraTurn : extraTurn);
+					setTurnRadarRightRadians(radarTurn);
 
-				try {
-					this.broadcastMessage(scanned);
-				} catch (IOException e1) {
-					e1.printStackTrace();
+					
+				}else {
+					System.out.println("333");
 				}
-			} else {
-				System.out.println("333");
+				}
 			}
+			} 
 		}
 	}
 
@@ -302,6 +330,7 @@ public class TeamBot extends TeamRobot {
 
 	// Quando um robô é destruido, verifica se é o atual alvo.
 	public void onRobotDeath(RobotDeathEvent e) {
+
 
 		if (scanned != null && e.getName().equals(scanned.getName())) {
 			System.out.println("Yippee ki-yay, motherfucker!");

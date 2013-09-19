@@ -2,9 +2,11 @@ package robots;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.io.ObjectInputStream.GetField;
 import java.util.Hashtable;
 
 import robocode.*;
+import robocode.exception.WinException;
 import robocode.util.Utils;
 import robots.util.*;
 
@@ -111,6 +113,26 @@ public class TeamBot extends TeamRobot {
 			xforce += Math.sin(ang) * force;
 			yforce += Math.cos(ang) * force;
 		}
+		
+		
+		//Descobre um ponto de paz e aplica uma gravidade positiva, para não deixar o robô parado
+		
+		p = new GravPoint(getClearPoint(3), 1000);
+		force = p.power
+				/ Math.pow(RobotUtils.getRange(new Point2D.Double(getX(),
+						getY()), p.location), 2);
+		// Find the bearing from the point to us
+		ang = RobotUtils.normaliseBearing(Math.PI
+				/ 2
+				- Math.atan2(getY() - p.location.getY(), getX()
+						- p.location.getX()));
+		// Add the components of this force to the total force in their
+		// respective directions
+		xforce += Math.sin(ang) * force;
+		yforce += Math.cos(ang) * force;
+		
+		//Fim clear point
+		
 
 		// TODO marcando para olhar depois e tweakar.
 		// if(target != null){
@@ -218,6 +240,7 @@ public void onMessageReceived(MessageEvent e){
 		enemies.put(scanned.getName(), scanned);
 		if(scanned!=null){
 			if(this.scanned.name.equals(e.getName())){
+				this.lastScannedTime = getTime();
 				//Calculo de movimentação do radar para manter o alvo sob scan constante
 				double angleToEnemy = getHeadingRadians() + e.getBearingRadians();	
 				double radarTurn = Utils.normalRelativeAngle( angleToEnemy - getRadarHeadingRadians() );
@@ -236,9 +259,6 @@ public void onMessageReceived(MessageEvent e){
 				}
 			}
 		}
-		
-		
-		
 	}
 
 	void goTo(double x, double y) {
@@ -330,6 +350,47 @@ public void onMessageReceived(MessageEvent e){
 		return new Bot(this.getName(), 0, 0, this.getEnergy(),
 				this.getHeading(), this.getVelocity(), this.getX(),
 				this.getY(), this.getTime(), false, false);
+	}
+	
+	
+	public Point2D getClearPoint(int gridSize){
+		
+		int[][] grid = new int[gridSize][gridSize];
+		
+		int height = (int) this.getBattleFieldHeight();
+		int width = (int) this.getBattleFieldWidth();
+		int hIncrement = height/gridSize;
+		int wIncrement = width/gridSize;
+		
+				
+		for(int w=wIncrement, i=0 ; w<=width; w+=wIncrement, i++){
+			for(int h=hIncrement, j=0 ; h<=height; h+=hIncrement, j++){
+				for (Bot b : enemies.values()) {
+					if( (b.x < w) && (b.x > w-wIncrement) && (b.y < h) && (b.y > h-hIncrement)){
+						grid[i][j]++;						
+					}
+				}
+			}
+		}
+		
+		int min=5000;
+		
+		int x=0, y=0;
+		
+		for (int i = 0; i < grid.length; i++) {
+			for (int j = 0; j < grid[i].length; j++) {
+				if(grid[i][j]<min){
+					x=i;
+					y=j;
+					min = grid[i][j];
+				}
+			}			
+		}
+		
+		x *= wIncrement;
+		y *= hIncrement;
+		
+		return new Point2D.Double(x, y);
 	}
 
 }
